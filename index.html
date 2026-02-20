@@ -3,54 +3,313 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website Overloaded</title>
+    <title>Guild Glory Premium | Developed by Kaddu</title>
     <style>
+        /* --- DESIGN & COLORS --- */
+        :root {
+            --primary-glow: #00f2ff;
+            --secondary-glow: #7000ff;
+            --accent-red: #ff2a6d;
+            --matrix-green: #00ff41;
+            --bg-dark: #050505;
+            --card-bg: rgba(20, 20, 35, 0.85);
+            --text-color: #e0e0e0;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            color: #333;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #050505 100%);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+            color: var(--text-color);
+            overflow: hidden;
         }
+
+        /* --- CONTAINER STYLING --- */
         .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 40px rgba(0, 242, 255, 0.15);
+            width: 380px;
             text-align: center;
-            padding: 20px;
-            border: 2px solid #dc3545;
-            border-radius: 10px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1;
         }
+
         h1 {
-            color: #dc3545;
-            margin-bottom: 20px;
+            font-size: 2.5rem;
+            margin: 0;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--primary-glow);
         }
-        p {
-            font-size: 18px;
-            margin-bottom: 20px;
+
+        .subtitle {
+            color: var(--primary-glow);
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+            opacity: 0.8;
         }
-        .retry {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
+
+        /* --- INPUTS & BUTTONS --- */
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--secondary-glow);
+            border-radius: 8px;
+            color: #fff;
+            outline: none;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--primary-glow);
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: transparent;
+            border: 2px solid var(--accent-red);
+            color: var(--accent-red);
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.4s;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            background: var(--accent-red);
+            color: #fff;
+            box-shadow: 0 0 25px var(--accent-red);
+        }
+
+        /* --- GET PASSWORD BUTTON --- */
+        .btn-get-pass {
+            display: inline-block;
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            border: 1px solid var(--primary-glow);
+            color: var(--primary-glow);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 8px;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-get-pass:hover {
+            background: rgba(0, 242, 255, 0.1);
+            box-shadow: 0 0 15px var(--primary-glow);
+            color: #fff;
+        }
+
+        /* --- CODING TERMINAL --- */
+        #console-output {
+            display: none;
+            background: #000;
+            color: var(--matrix-green);
+            font-family: 'Courier New', monospace;
+            text-align: left;
+            padding: 15px;
+            border-radius: 8px;
+            height: 200px;
+            font-size: 0.8rem;
+            overflow-y: auto;
+            border: 1px solid var(--matrix-green);
+            box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.2);
+            margin-top: 10px;
+        }
+
+        /* --- SUCCESS POPUP --- */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .popup-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .popup-content {
+            background: #0a0a0a;
+            padding: 40px;
+            border-radius: 25px;
+            border: 2px solid var(--matrix-green);
+            text-align: center;
+            box-shadow: 0 0 50px rgba(0, 255, 65, 0.4);
+            transform: translateY(-100vh);
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 300px;
+        }
+
+        .popup-overlay.show .popup-content {
+            transform: translateY(0);
+        }
+
+        .checkmark {
+            font-size: 50px;
+            color: var(--matrix-green);
+            background: rgba(0, 255, 65, 0.1);
+            width: 80px;
+            height: 80px;
+            line-height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            border: 2px solid var(--matrix-green);
+        }
+
+        .btn-reset {
+            margin-top: 20px;
+            padding: 10px 25px;
+            background: var(--matrix-green);
             border: none;
+            color: #000;
+            font-weight: bold;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
         }
-        .retry:hover {
-            background-color: #0056b3;
+
+        .hidden { display: none !important; }
+
+        .radio-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0 20px;
+            font-size: 0.85rem;
+            color: var(--primary-glow);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Website Overloaded</h1>
-        <p>Too many users are accessing the site right now. The website is temporarily overloaded.</p>
-        <p>Please try again later.</p>
-        <button class="retry" onclick="location.reload()">Retry</button>
+
+    <div id="login-box" class="container">
+        <h1>LOGIN</h1>
+        <div class="subtitle">SYSTEM AUTHENTICATION</div>
+        <input type="text" id="user" placeholder="USERNAME">
+        <input type="password" id="pass" placeholder="PASSWORD">
+        <button class="btn" onclick="validate()">ENTER SYSTEM</button>
+        <a href="https://www.youtube.com/results?search_query=Kaddu+Gaming" target="_blank" class="btn-get-pass">GET PASSWORD</a>
     </div>
+
+    <div id="main-tool" class="container hidden">
+        <h1>GUILD GLORY</h1>
+        <div class="subtitle">DEVELOPED BY KADDU</div>
+        
+        <input type="text" id="guild-id" placeholder="ENTER GUILD ID">
+        
+        <select id="server">
+            <option value="">SELECT SERVER</option>
+            <option value="ind">IND SERVER</option>
+            <option value="bd">BD SERVER</option>
+            <option value="sg">SINGAPORE SERVER</option>
+        </select>
+
+        <div class="radio-container">
+            <label><input type="radio" name="bots" value="4"> 4 BOTS</label>
+            <label><input type="radio" name="bots" value="8"> 8 BOTS</label>
+            <label><input type="radio" name="bots" value="12"> 12 BOTS</label>
+        </div>
+
+        <button class="btn" id="launch-trigger" onclick="runHack()">LAUNCH BOTS</button>
+
+        <div id="console-output"></div>
+    </div>
+
+    <div id="success-popup" class="popup-overlay">
+        <div class="popup-content">
+            <div class="checkmark">✔</div>
+            <h2 style="color: white; margin: 0;">SUCCESS</h2>
+            <p style="color: #888;">Bots Launched Successfully!</p>
+            <button class="btn-reset" onclick="resetPage()">DONE</button>
+        </div>
+    </div>
+
+    <script>
+        function validate() {
+            const p = document.getElementById('pass').value;
+            if(p === "KADDU2K") {
+                document.getElementById('login-box').classList.add('hidden');
+                document.getElementById('main-tool').classList.remove('hidden');
+            } else {
+                alert("ACCESS DENIED: INCORRECT PASSWORD");
+            }
+        }
+
+        function runHack() {
+            const btn = document.getElementById('launch-trigger');
+            const consoleBox = document.getElementById('console-output');
+            
+            btn.style.display = 'none';
+            consoleBox.style.display = 'block';
+
+            const logs = [
+                "> INITIALIZING ENGINE...",
+                "> LINK CHECKING GUILD.DATABASE...",
+                "> LOCATING IND SERVER...",
+                "> LOCATING BD SERVER...",
+                "> BYPASSING SERVER SECURITY...",
+                "> CHECKING FOR UPDATES...",
+                "> ALIGNING SOURCE CODE...",
+                "> INJECTING BOT SCRIPTS...",
+                "> ENCRYPTING DATA PACKETS...",
+                "> WAITING FOR RESPONSE (10s)...",
+                "> FINALIZING DEPLOYMENT...",
+                "> LAUNCHED SUCCESSFULLY."
+            ];
+
+            let i = 0;
+            const timer = setInterval(() => {
+                if (i < logs.length) {
+                    const line = document.createElement('div');
+                    line.textContent = logs[i];
+                    consoleBox.appendChild(line);
+                    consoleBox.scrollTop = consoleBox.scrollHeight;
+                    i++;
+                } else {
+                    clearInterval(timer);
+                    setTimeout(() => {
+                        document.getElementById('success-popup').classList.add('show');
+                    }, 1000);
+                }
+            }, 850); 
+        }
+
+        function resetPage() {
+            location.reload();
+        }
+    </script>
 </body>
 </html>
