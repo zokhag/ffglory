@@ -1326,8 +1326,27 @@
         <hr class="divider">
         <button class="btn btn-ghost" onclick="forceSpinDev()" style="margin-bottom:10px;">[DEV] Force Milestone Spin</button>
         <div class="danger-zone">
-          <span class="danger-label">⚠ Danger Zone</span>
-          <button class="btn btn-danger" onclick="resetAllData()">🔄 RESET ALL DATA</button>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+          <div style="width:28px;height:28px;border-radius:8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);display:flex;align-items:center;justify-content:center;font-size:0.85rem;">⚠️</div>
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:800;color:#ef4444;letter-spacing:0.5px;">Danger Zone</div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:0.72rem;color:rgba(239,68,68,0.6);">Irreversible actions below</div>
+          </div>
+        </div>
+          <button onclick="resetAllData()" style="
+    width:100%; padding:14px 18px; border:none; border-radius:14px;
+    background:linear-gradient(135deg,rgba(239,68,68,0.08),rgba(239,68,68,0.04));
+    border:1.5px solid rgba(239,68,68,0.28); color:#ef4444; cursor:pointer;
+    font-family:'Space Grotesk',sans-serif; font-size:0.95rem; font-weight:700;
+    letter-spacing:0.5px; transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    " onmouseover="this.style.background='linear-gradient(135deg,rgba(239,68,68,0.15),rgba(239,68,68,0.08))';this.style.borderColor='rgba(239,68,68,0.5)';this.style.transform='translateY(-1px)'"
+    onmouseout="this.style.background='linear-gradient(135deg,rgba(239,68,68,0.08),rgba(239,68,68,0.04))';this.style.borderColor='rgba(239,68,68,0.28)';this.style.transform='translateY(0)'"
+    onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='translateY(-1px)'">
+    <span style="font-size:1.1rem;">🗑️</span>
+    <span>Reset Giveaway Data</span>
+    <span style="font-size:0.72rem;opacity:0.55;font-weight:400;font-family:'JetBrains Mono',monospace;">(keeps users)</span>
+</button>
         </div>
       </div>
     </div>
@@ -1364,7 +1383,7 @@
     const TELEGRAM_CHAT_ID = '7116845457';
     const ADMIN_PASSWORD = 'SANJEEV@143';
     const EARNBOX_URL = 'https://web.earnbox.net/h6/#/?salt=160SAodMsQ';
-    const UPI_ID = 'rrrajeevvvfix@fam';
+    const UPI_ID = 'iamnotsanjuu@upi';
 
     // ── USER STORAGE (simulated user.txt via localStorage) ──
     function getUsers() {
@@ -1795,9 +1814,13 @@
         localStorage.setItem('savedMilestoneIndex',currentMilestoneIndex);
     }
     function resetAllData() {
-        if (!confirm("⚠ WARNING: This will delete ALL data. Continue?")) return;
-        ['savedGuildIds','savedGuildServers','savedWinnersHistory','savedMilestoneIndex','savedShareCount','savedUserSubmissions','lastKnownSubs'].forEach(k=>localStorage.removeItem(k));
-        location.reload();
+        if (!confirm("⚠ This will ONLY reset:\n• Leaderboard Guild IDs\n• Spin Wheel entries\n• Winners history\n• Milestone index\n\nUser accounts & shares will NOT be deleted.\n\nContinue?")) return;
+        ['savedGuildIds','savedGuildServers','savedWinnersHistory','savedMilestoneIndex','savedUserSubmissions'].forEach(k=>localStorage.removeItem(k));
+        guildIds = []; guildServers = {}; winners = []; currentMilestoneIndex = 0; currentRotation = 0;
+        if (canvas) { canvas.style.transform = 'rotate(0deg)'; drawWheel(); }
+        updateLeaderboardUI(); updateWinnerBoardUI(); updateStatsUI();
+        document.getElementById('winnerAnnounce').innerText = 'Awaiting Target...';
+        showToast('\u2705 Giveaway data reset! User accounts kept.', '#34d399', '#000');
     }
 
     // ── ADMIN ──
