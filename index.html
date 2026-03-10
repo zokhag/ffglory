@@ -134,10 +134,9 @@
         }
         .auth-input {
             width: 100%; background: rgba(255,255,255,0.04);
-            border: 1px solid var(--border); color: var(--text);
-            padding: 13px 16px; border-radius: 11px; font-size: 1rem;
-            font-family: var(--font-body); font-weight: 600; transition: all 0.3s;
-            letter-spacing: 0.5px;
+            border: 1.5px solid rgba(255,255,255,0.1); color: #ffffff;
+            padding: 14px 16px; border-radius: 12px; font-size: 1rem;
+            font-family: var(--font-body); font-weight: 500; transition: all 0.25s;
         }
         .auth-input:focus {
             outline: none; border-color: rgba(77,159,255,0.4);
@@ -146,29 +145,30 @@
         }
         .auth-input::placeholder { color: var(--muted); }
         .auth-btn {
-            width: 100%; padding: 15px; border: none; border-radius: 12px;
-            font-family: var(--font-display); font-size: 0.65rem; font-weight: 700;
-            letter-spacing: 0.3px; text-transform: uppercase; cursor: pointer; transition: all 0.22s;
-            margin-top: 4px;
+            width: 100%; padding: 15px; border: none; border-radius: 14px;
+            font-family: var(--font-body); font-size: 1rem; font-weight: 700;
+            letter-spacing: 0px; cursor: pointer; transition: all 0.25s;
+            margin-top: 8px;
         }
+        .auth-btn:active { transform: scale(0.97); }
         .auth-btn-login {
-            background: linear-gradient(135deg, #005f75, #6366f1);
-            color: #fff; box-shadow: 0 4px 20px rgba(77,159,255,0.3);
+            background: linear-gradient(135deg, #1d4ed8, #4d9fff);
+            color: #fff; box-shadow: 0 4px 20px rgba(77,159,255,0.35);
         }
-        .auth-btn-login:hover { box-shadow: 0 4px 32px rgba(77,159,255,0.5); }
+        .auth-btn-login:hover { box-shadow: 0 6px 28px rgba(77,159,255,0.55); transform: translateY(-1px); }
         .auth-btn-register {
-            background: linear-gradient(135deg, #5b1f9e, var(--purple));
-            color: #fff; box-shadow: 0 4px 20px rgba(77,159,255,0.3);
+            background: linear-gradient(135deg, #6d28d9, #8b5cf6);
+            color: #fff; box-shadow: 0 4px 20px rgba(99,102,241,0.35);
         }
-        .auth-btn-register:hover { box-shadow: 0 4px 32px rgba(77,159,255,0.5); }
+        .auth-btn-register:hover { box-shadow: 0 6px 28px rgba(99,102,241,0.55); transform: translateY(-1px); }
         .auth-error {
-            font-size: 0.78rem; color: var(--magenta); text-align: center;
-            margin-top: 10px; font-family: var(--font-display); font-size: 0.5rem;
-            letter-spacing: 1px; display: none; padding: 10px;
-            background: rgba(255,77,166,0.08); border-radius: 8px;
-            border: 1px solid rgba(255,77,166,0.2);
+            font-size: 0.88rem; color: #ff4da6; text-align: center;
+            margin-top: 12px; font-family: var(--font-body); font-weight: 600;
+            display: none; padding: 12px 14px;
+            background: rgba(255,77,166,0.08); border-radius: 10px;
+            border: 1px solid rgba(255,77,166,0.25);
         }
-        .auth-error.show { display: block; }
+        .auth-error.show { display: block; animation: fadeSlide 0.3s ease; }
         .auth-divider {
             display: flex; align-items: center; gap: 10px; margin: 16px 0;
         }
@@ -808,7 +808,7 @@
 </div>
 
 <!-- ═══ MAIN APP ═══ -->
-<div id="mainApp" style="display:none;display:flex;flex-direction:column;height:100vh;">
+<div id="mainApp" style="display:none;flex-direction:column;height:100vh;">
 
 <header>
   <div class="logo-area">
@@ -2117,12 +2117,24 @@
         }
     }
     function updateProgressBar() {
-        const target=milestones[currentMilestoneIndex];
-        const prev=currentMilestoneIndex===0?BASE_SUBS:milestones[currentMilestoneIndex-1];
-        let pct=Math.min(Math.max(((currentSubs-prev)/(target-prev))*100,0),100);
-        document.getElementById('progressFill').style.width=pct+'%';
-        const rem=target-currentSubs;
-        document.getElementById('subsRemaining').innerText=rem>0?`${rem.toLocaleString()} subs`:"🔥 Target Hit!";
+        // Auto-advance past already-completed milestones (fixes stale target display)
+        while (currentMilestoneIndex < milestones.length && currentSubs >= milestones[currentMilestoneIndex]) {
+            currentMilestoneIndex++;
+            saveData();
+        }
+        if (currentMilestoneIndex >= milestones.length) {
+            document.getElementById('progressFill').style.width = '100%';
+            document.getElementById('subsRemaining').innerText = '\uD83C\uDFC6 All milestones done!';
+            updateMilestoneText();
+            return;
+        }
+        const target = milestones[currentMilestoneIndex];
+        const prev = currentMilestoneIndex === 0 ? BASE_SUBS : milestones[currentMilestoneIndex - 1];
+        let pct = Math.min(Math.max(((currentSubs - prev) / (target - prev)) * 100, 0), 100);
+        document.getElementById('progressFill').style.width = pct + '%';
+        const rem = target - currentSubs;
+        document.getElementById('subsRemaining').innerText = rem > 0 ? rem.toLocaleString() + ' subs needed' : '\uD83D\uDD25 Target Hit!';
+        updateMilestoneText();
     }
     function calculateETA() {
         if (currentMilestoneIndex>=milestones.length){document.getElementById('etaTracker').innerText="ALL MILESTONES COMPLETED!";return;}
@@ -2140,14 +2152,14 @@
         document.getElementById('nextMilestone2').innerText=t;
     }
     function checkMilestones() {
-        if (currentMilestoneIndex>=milestones.length) return;
-        if (currentSubs>=milestones[currentMilestoneIndex]&&!isSpinning&&guildIds.length>0){
-            document.getElementById('winnerAnnounce').innerText="🚨 OVERLOAD: SPINNING...";
-            currentMilestoneIndex++;saveData();updateMilestoneText();
-            trackingStartTime=Date.now();subsAtStart=currentSubs;
+        if (currentMilestoneIndex >= milestones.length) return;
+        if (currentSubs >= milestones[currentMilestoneIndex] && !isSpinning && guildIds.length > 0) {
+            document.getElementById('winnerAnnounce').innerText = '\uD83D\uDEA8 MILESTONE! SPINNING...';
             spinWheel();
+            currentMilestoneIndex++; saveData(); updateMilestoneText();
+            trackingStartTime = Date.now(); subsAtStart = currentSubs;
         }
     }
-</script>
+    </script>
 </body>
 </html>
