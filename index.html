@@ -1540,6 +1540,7 @@
         totalShares = parseInt(localStorage.getItem('savedShareCount')) || 0;
         trackingStartTime = Date.now(); subsAtStart = 0;
         tasks = { yt: false, ig: false, wa: false, tg: false, eb: false };
+        setTimeout(restoreTasks, 100); // Restore tasks after DOM ready
         selectedServer = ''; homeSelectedServer = ''; screenshotFile = null; ebExpanded = false;
         currentRotation = 0;
         canvas = document.getElementById('wheelCanvas');
@@ -1715,9 +1716,32 @@
     function completeTask(platform, url) {
         window.open(url,'_blank');
         tasks[platform] = true;
+        const cur = getCurrentUser();
+        if (cur) localStorage.setItem('gg_tasks_'+cur, JSON.stringify(tasks));
         document.getElementById('task-'+platform).classList.add('done');
         document.getElementById('status-'+platform).innerText = 'Done ✓';
         updateTasksProgress(); checkAllTasksDone();
+    }
+
+    function restoreTasks() {
+        const cur = getCurrentUser();
+        if (!cur) return;
+        const saved = localStorage.getItem('gg_tasks_'+cur);
+        if (!saved) return;
+        try {
+            const t = JSON.parse(saved);
+            Object.keys(t).forEach(p => {
+                if (t[p]) {
+                    tasks[p] = true;
+                    const el = document.getElementById('task-'+p);
+                    if (el) el.classList.add('done');
+                    const st = document.getElementById('status-'+p);
+                    if (st) st.innerText = 'Done ✓';
+                }
+            });
+            updateTasksProgress();
+            checkAllTasksDone();
+        } catch(e) {}
     }
     function updateTasksProgress() {
         const done = Object.values(tasks).filter(Boolean).length;
@@ -1861,6 +1885,7 @@
                 statusMsg.innerText='✅ Screenshot sent! Task complete.';
                 statusMsg.style.display='block';
                 tasks.eb=true;
+                const cur2=getCurrentUser(); if(cur2) localStorage.setItem('gg_tasks_'+cur2, JSON.stringify(tasks));
                 document.getElementById('task-eb-wrapper').classList.add('done');
                 document.getElementById('status-eb').innerText='Done ✓';
                 updateTasksProgress(); checkAllTasksDone();
