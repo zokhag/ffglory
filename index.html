@@ -827,9 +827,29 @@
       <div class="user-chip-avatar" id="userAvatar">?</div>
       <div class="user-chip-name" id="userChipName">USER</div>
     </div>
+    <div class="notif-bell-wrap" onclick="openNotifPanel()">
+      <button class="header-btn">🔔</button>
+      <div class="notif-badge" id="notifBadge">0</div>
+    </div>
     <button class="header-btn" onclick="switchTab('admin')">⚙</button>
   </div>
 </header>
+
+<!-- NOTIFICATION PANEL -->
+<div class="notif-panel" id="notifPanel" onclick="closeNotifPanel(event)">
+  <div class="notif-sheet" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <div style="font-family:var(--font-display);font-size:1rem;font-weight:800;letter-spacing:1px;">🔔 NOTIFICATIONS</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="markAllRead()" style="font-size:0.65rem;padding:5px 10px;border-radius:8px;border:1px solid rgba(77,159,255,0.3);background:transparent;color:var(--cyan);cursor:pointer;font-family:var(--font-display);">MARK ALL READ</button>
+        <button onclick="closeNotifPanel()" style="font-size:1rem;background:none;border:none;color:var(--muted);cursor:pointer;">✕</button>
+      </div>
+    </div>
+    <div id="notifList">
+      <div style="text-align:center;padding:40px 0;color:var(--muted);font-size:0.82rem;">No notifications yet 🔕</div>
+    </div>
+  </div>
+</div>
 
 <div class="content-area" id="mainContent">
 
@@ -982,12 +1002,16 @@
             <div class="server-btn" onclick="selectHomeServer(this,'Vietnam')"><span class="flag">🇻🇳</span><div><div>Vietnam</div><span class="server-tag">VN</span></div></div>
           </div>
           <div id="homeSelectedBadge" class="selected-server-badge"></div>
-          <button id="homeConfirmBtn" class="confirm-entry-btn" onclick="addGuildIdHome()">🎯 CONFIRM & JOIN WHEEL</button>
+          <div id="homeRefLockBanner" style="display:none;margin-bottom:8px;padding:10px 14px;background:rgba(255,77,102,0.08);border:1px solid rgba(255,77,102,0.25);border-radius:10px;font-size:0.78rem;color:#ff4d6a;text-align:center;line-height:1.5;">
+  🔒 Need <b id="homeRefNeeded">5</b> more referral joins to unlock submission<br>
+  <span style="font-size:0.7rem;opacity:0.7;">Go to Share tab → share your link → get 5 people to subscribe</span>
+</div>
+<button id="homeConfirmBtn" class="confirm-entry-btn" onclick="addGuildIdHome()">🎯 CONFIRM & JOIN WHEEL</button>
         </div>
       </div>
     </div>
 
-    <div class="card card-glow-cyan" style="background:linear-gradient(135deg,rgba(77,159,255,0.05),rgba(77,159,255,0.04));">
+    <div class="card card-glow-cyan" id="shareTrackerCard" style="background:linear-gradient(135deg,rgba(77,159,255,0.05),rgba(77,159,255,0.04));">
       <div class="sec-header">
         <div class="sec-icon cyan">🔗</div>
         <div><div class="sec-title cyan">Your Share Tracker</div></div>
@@ -1008,9 +1032,23 @@
           <div style="font-family:var(--font-display);font-size:0.36rem;letter-spacing: 0.2px;color:var(--muted);margin-top:4px;">JOINED</div>
         </div>
       </div>
+      <!-- Referral unlock progress -->
+      <div id="refUnlockBar" style="margin-bottom:14px;padding:12px;background:rgba(255,77,102,0.06);border:1px solid rgba(255,77,102,0.2);border-radius:11px;display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <div style="font-family:var(--font-display);font-size:0.5rem;color:#ff4d6a;letter-spacing:1px;">🔒 UNLOCK SUBMISSION</div>
+          <div style="font-family:var(--font-display);font-size:0.6rem;color:#ff4d6a;" id="refUnlockCount">0/5</div>
+        </div>
+        <div style="height:7px;background:rgba(255,255,255,0.07);border-radius:99px;overflow:hidden;">
+          <div id="refUnlockFill" style="height:100%;background:linear-gradient(90deg,#ff4d6a,#ff6b35);border-radius:99px;transition:width 0.4s ease;width:0%;"></div>
+        </div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:7px;" id="refUnlockMsg">Share your link below and get 5 friends to subscribe to unlock Guild ID submission!</div>
+      </div>
       <!-- Your referral link -->
       <div style="background:rgba(77,159,255,0.04);border:1px solid rgba(77,159,255,0.15);border-radius:11px;padding:12px;margin-bottom:12px;">
-        <div style="font-family:var(--font-display);font-size:0.44rem;letter-spacing: 0.2px;color:var(--cyan);margin-bottom:6px;">YOUR REFERRAL LINK</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <div style="font-family:var(--font-display);font-size:0.44rem;letter-spacing:0.2px;color:var(--cyan);">YOUR REFERRAL LINK</div>
+          <button onclick="copyRefLink()" style="font-size:0.55rem;padding:4px 10px;border-radius:7px;border:1px solid rgba(77,159,255,0.35);background:transparent;color:var(--cyan);cursor:pointer;font-family:var(--font-display);" id="copyRefBtn">📋 COPY</button>
+        </div>
         <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text);word-break:break-all;line-height:1.5;" id="myRefLink">—</div>
       </div>
       <!-- Share log -->
@@ -1019,6 +1057,7 @@
         <div id="shareFeed" style="font-size:0.78rem;color:var(--muted);">No shares yet</div>
       </div>
       <button class="btn btn-cyan" onclick="shareChannel()">🔗 SHARE YOUR LINK NOW</button>
+      <button id="notifPermBtn" onclick="requestPushPermission(true)" style="width:100%;margin-top:8px;padding:12px;border-radius:12px;border:1px solid rgba(77,159,255,0.3);background:rgba(77,159,255,0.06);color:var(--cyan);font-family:var(--font-display);font-size:0.58rem;font-weight:700;cursor:pointer;letter-spacing:0.5px;">🔔 Enable Notifications</button>
     </div>
 
     <!-- Premium teaser -->
@@ -1154,7 +1193,11 @@
             <div class="server-btn" onclick="selectTaskServer(this,'Vietnam')"><span class="flag">🇻🇳</span><div><div>Vietnam</div><span class="server-tag">VN</span></div></div>
           </div>
           <div id="taskSelectedBadge" class="selected-server-badge"></div>
-          <button id="taskConfirmBtn" class="confirm-entry-btn" onclick="addGuildId()">🎯 CONFIRM & JOIN WHEEL</button>
+          <div id="taskRefLockBanner" style="display:none;margin-bottom:8px;padding:10px 14px;background:rgba(255,77,102,0.08);border:1px solid rgba(255,77,102,0.25);border-radius:10px;font-size:0.78rem;color:#ff4d6a;text-align:center;line-height:1.5;">
+  🔒 Need <b id="taskRefNeeded">5</b> more referral joins to unlock submission<br>
+  <span style="font-size:0.7rem;opacity:0.7;">Go to Share tab → share your link → get 5 people to subscribe</span>
+</div>
+<button id="taskConfirmBtn" class="confirm-entry-btn" onclick="addGuildId()">🎯 CONFIRM & JOIN WHEEL</button>
         </div>
       </div>
     </div>
@@ -1366,6 +1409,25 @@
         <button class="btn btn-cyan" onclick="uploadProof()">Attach Proof Photos</button>
         <hr class="divider">
         <button class="btn btn-ghost" onclick="forceSpinDev()" style="margin-bottom:10px;">[DEV] Force Milestone Spin</button>
+        <!-- NOTIFICATION COMPOSE -->
+        <div class="notif-compose">
+          <div style="font-family:var(--font-display);font-size:0.6rem;color:var(--cyan);letter-spacing:1.5px;margin-bottom:12px;">📢 SEND NOTIFICATION TO ALL USERS</div>
+          <label class="field-label">Notification Title</label>
+          <input type="text" class="field-input admin-input" id="notifTitle" placeholder="e.g. 🎉 Winner Announced!">
+          <label class="field-label" style="margin-top:8px;">Message</label>
+          <textarea class="field-input admin-input" id="notifMessage" placeholder="Write your announcement here..." style="height:80px;resize:none;padding:10px;font-family:var(--font-mono);font-size:0.8rem;"></textarea>
+          <div style="display:flex;gap:8px;margin-top:4px;">
+            <select id="notifType" class="field-input admin-input" style="margin-bottom:0;flex:1;">
+              <option value="info">ℹ️ Info</option>
+              <option value="winner">🏆 Winner</option>
+              <option value="milestone">🎯 Milestone</option>
+              <option value="alert">🚨 Alert</option>
+              <option value="gift">🎁 Reward</option>
+            </select>
+            <button class="btn btn-cyan" onclick="adminSendNotif()" style="flex:1;margin:0;font-size:0.6rem;">📤 SEND TO ALL</button>
+          </div>
+        </div>
+        <hr class="divider">
         <div class="danger-zone">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
           <div style="width:28px;height:28px;border-radius:8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);display:flex;align-items:center;justify-content:center;font-size:0.85rem;">⚠️</div>
@@ -1581,6 +1643,12 @@
             winners = wins;
             updateWinnerBoardUI(); updateStatsUI();
         });
+
+        // Global notifications from Firebase
+        listenGlobalNotifs();
+        updateNotifBadge();
+        // Ask for push permission after small delay (after login)
+        setTimeout(maybePromptNotifPermission, 2000);
     }
 
     function showAlreadySubmittedBadge(guildId) {
@@ -1607,6 +1675,23 @@
 
     // ── NAVIGATION ──
     function switchTab(tabId) {
+        // 'share' lives inside home tab — scroll to it
+        if (tabId === 'share') {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById('tab-home').classList.add('active');
+            document.querySelectorAll('.nav-item')[0].classList.add('active');
+            setTimeout(() => {
+                const el = document.getElementById('shareTrackerCard');
+                if (el) {
+                    el.scrollIntoView({behavior:'smooth', block:'center'});
+                    el.style.transition = 'box-shadow 0.3s';
+                    el.style.boxShadow = '0 0 0 3px rgba(77,159,255,0.7), 0 0 30px rgba(77,159,255,0.4)';
+                    setTimeout(() => { el.style.boxShadow = ''; }, 2500);
+                }
+            }, 150);
+            return;
+        }
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById('tab-'+tabId).classList.add('active');
@@ -1816,6 +1901,14 @@
         const curUser = getCurrentUser();
         const userSubmissions = JSON.parse(localStorage.getItem('savedUserSubmissions')) || {};
         if (userSubmissions[curUser]) { showToast('⚠ You already submitted a Guild ID!','#ff4d6a','#fff'); return; }
+        const refD = getRefData();
+        if ((refD.joins || 0) < 5) {
+            const need = 5 - (refD.joins || 0);
+            showToast('🔒 Need ' + need + ' more referral join' + (need>1?'s':'') + '! Redirecting to share...','#ff4d6a','#fff');
+            switchTab('share');
+            setTimeout(() => highlightShareSection(refD.joins || 0), 400);
+            return;
+        }
         const btn = document.getElementById('homeConfirmBtn');
         btn.disabled = true; btn.textContent = 'Adding...';
         const ok = await fbAddEntry(id, homeSelectedServer, curUser);
@@ -1830,6 +1923,7 @@
         document.querySelectorAll('#homeServerGrid .server-btn').forEach(b=>b.classList.remove('selected'));
         const msg=`🎉 NEW ENTRY!\n👤 User: ${curUser}\n🆔 Guild ID: ${id}\n🌐 Server: ${homeSelectedServer}\n🎯 Kaddu_YT9 Guild Glory`;
         fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`).catch(()=>{});
+        pushNotif('🎯 You joined the wheel!', 'Your Guild ID ' + id + ' is now in the lucky wheel. Good luck!', 'milestone');
         showToast('🎉 ADDED TO THE WHEEL!','#00d68f','#000');
     }
     function onTaskGuildInput() {
@@ -1856,6 +1950,14 @@
         const curUser = getCurrentUser();
         const userSubmissions = JSON.parse(localStorage.getItem('savedUserSubmissions')) || {};
         if (userSubmissions[curUser]) { showToast('⚠ You already submitted a Guild ID!','#ff4d6a','#fff'); return; }
+        const refD = getRefData();
+        if ((refD.joins || 0) < 5) {
+            const need = 5 - (refD.joins || 0);
+            showToast('🔒 Need ' + need + ' more referral join' + (need>1?'s':'') + '! Redirecting to share...','#ff4d6a','#fff');
+            switchTab('share');
+            setTimeout(() => highlightShareSection(refD.joins || 0), 400);
+            return;
+        }
         const btn = document.getElementById('taskConfirmBtn');
         btn.disabled = true; btn.textContent = 'Adding...';
         const ok = await fbAddEntry(id, selectedServer, curUser);
@@ -1870,6 +1972,7 @@
         document.querySelectorAll('#taskServerGrid .server-btn').forEach(b=>b.classList.remove('selected'));
         const msg=`🎉 NEW GIVEAWAY ENTRY!\n👤 User: ${curUser}\n🆔 Guild ID: ${id}\n🌐 Server: ${selectedServer}\n🎯 Kaddu_YT9 Guild Glory`;
         fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`).catch(()=>{});
+        pushNotif('🎯 You joined the wheel!', 'Your Guild ID ' + id + ' is now in the lucky wheel. Good luck!', 'milestone');
         showToast('🎯 ADDED TO THE WHEEL!','#00d68f','#000');
     }
 
@@ -1952,6 +2055,251 @@
         document.getElementById('winnerAnnounce').innerText = 'Awaiting Target...';
         showToast('✅ Giveaway data reset! User accounts kept.', '#00d68f', '#000');
     }
+
+
+    // ── NOTIFICATIONS ──
+    const NOTIF_ICONS = { info:'ℹ️', winner:'🏆', milestone:'🎯', alert:'🚨', gift:'🎁' };
+
+    function getNotifs() {
+        try { return JSON.parse(localStorage.getItem('gg_notifs')) || []; } catch { return []; }
+    }
+    function saveNotifs(n) { localStorage.setItem('gg_notifs', JSON.stringify(n)); }
+
+    function pushNotif(title, msg, type='info') {
+        const notifs = getNotifs();
+        notifs.unshift({ id: Date.now(), title, msg, type, read: false, ts: new Date().toLocaleString() });
+        if (notifs.length > 50) notifs.pop();
+        saveNotifs(notifs);
+        updateNotifBadge();
+        renderNotifList();
+        if (typeof sendBrowserNotif === 'function') sendBrowserNotif(title, msg);
+    }
+
+    function updateNotifBadge() {
+        const unread = getNotifs().filter(n => !n.read).length;
+        const badge = document.getElementById('notifBadge');
+        if (!badge) return;
+        if (unread > 0) {
+            badge.style.display = 'flex';
+            badge.textContent = unread > 9 ? '9+' : unread;
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    function renderNotifList() {
+        const list = document.getElementById('notifList');
+        if (!list) return;
+        const notifs = getNotifs();
+        if (!notifs.length) {
+            list.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:0.82rem;">No notifications yet 🔕</div>';
+            return;
+        }
+        list.innerHTML = notifs.map(n => `
+            <div class="notif-item ${n.read ? '' : 'notif-unread'}" onclick="markRead(${n.id})">
+                <div class="notif-icon">${NOTIF_ICONS[n.type] || 'ℹ️'}</div>
+                <div class="notif-body">
+                    <div class="notif-title">${n.title}</div>
+                    <div class="notif-msg">${n.msg}</div>
+                    <div class="notif-time">${n.ts}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function openNotifPanel() {
+        document.getElementById('notifPanel').classList.add('show');
+        renderNotifList();
+    }
+    function closeNotifPanel(e) {
+        if (!e || e.target === document.getElementById('notifPanel'))
+            document.getElementById('notifPanel').classList.remove('show');
+    }
+    function markRead(id) {
+        const notifs = getNotifs();
+        const n = notifs.find(x => x.id === id);
+        if (n) { n.read = true; saveNotifs(notifs); updateNotifBadge(); renderNotifList(); }
+    }
+    function markAllRead() {
+        const notifs = getNotifs().map(n => ({...n, read: true}));
+        saveNotifs(notifs); updateNotifBadge(); renderNotifList();
+    }
+
+    // Firebase-based global notifications (admin sends → all users see)
+    async function adminSendNotif() {
+        const title = document.getElementById('notifTitle').value.trim();
+        const msg = document.getElementById('notifMessage').value.trim();
+        const type = document.getElementById('notifType').value;
+        if (!title || !msg) { showToast('⚠ Fill in title and message!','#ff4d6a','#fff'); return; }
+        try {
+            const { db, ref, push } = window._fb;
+            await push(ref(db, 'notifications'), { title, msg, type, ts: Date.now() });
+            document.getElementById('notifTitle').value = '';
+            document.getElementById('notifMessage').value = '';
+            showToast('📢 Notification sent to all users!','#00d68f','#000');
+        } catch(e) {
+            showToast('❌ Send failed: ' + e.message,'#ff4d6a','#fff');
+        }
+    }
+
+    // Listen for global notifications from Firebase
+    function listenGlobalNotifs() {
+        if (!window._fbReady) { document.addEventListener('fbReady', listenGlobalNotifs, {once:true}); return; }
+        const { db, ref, onValue } = window._fb;
+        const seenKey = 'gg_seen_notifs';
+        let seen = new Set(JSON.parse(localStorage.getItem(seenKey) || '[]'));
+        onValue(ref(db, 'notifications'), snap => {
+            if (!snap.exists()) return;
+            const all = snap.val();
+            Object.entries(all).forEach(([key, n]) => {
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    pushNotif(n.title, n.msg, n.type || 'info');
+                }
+            });
+            localStorage.setItem(seenKey, JSON.stringify([...seen]));
+        });
+    }
+
+
+    // ── SHARE HIGHLIGHT ──
+    function highlightShareSection(joins) {
+        const bar = document.getElementById('refUnlockBar');
+        if (bar) {
+            bar.style.display = 'block';
+            const pct = Math.min(100, (joins / 5) * 100);
+            document.getElementById('refUnlockFill').style.width = pct + '%';
+            document.getElementById('refUnlockCount').textContent = joins + '/5';
+            const need = 5 - joins;
+            document.getElementById('refUnlockMsg').textContent = need > 0
+                ? '👉 Share your link below! ' + need + ' more join' + (need>1?'s':'') + ' needed to unlock Guild ID submission.'
+                : '✅ Unlocked! You can now submit your Guild ID.';
+        }
+        // Pulse the share button
+        const btn = document.querySelector('#shareTrackerCard .btn-cyan');
+        if (btn) {
+            btn.style.animation = 'none';
+            btn.style.boxShadow = '0 0 0 4px rgba(77,159,255,0.5), 0 4px 30px rgba(77,159,255,0.6)';
+            btn.textContent = '🚀 SHARE NOW — GET 5 PEOPLE TO JOIN!';
+            setTimeout(() => { btn.style.boxShadow = ''; btn.textContent = '🔗 SHARE YOUR LINK NOW'; }, 4000);
+        }
+    }
+
+    function copyRefLink() {
+        const link = document.getElementById('myRefLink').textContent;
+        if (!link || link === '—') return;
+        navigator.clipboard.writeText(link).then(() => {
+            const btn = document.getElementById('copyRefBtn');
+            btn.textContent = '✅ COPIED!';
+            btn.style.color = 'var(--green)';
+            btn.style.borderColor = 'rgba(0,214,143,0.4)';
+            setTimeout(() => { btn.textContent = '📋 COPY'; btn.style.color = ''; btn.style.borderColor = ''; }, 2000);
+        }).catch(() => showToast('⚠ Copy failed — select manually', '#ff4d6a', '#fff'));
+    }
+
+    // ── WEB PUSH NOTIFICATIONS (browser/mobile) ──
+    let _swRegistered = false;
+
+    async function requestPushPermission(fromUserAction) {
+        if (!('Notification' in window)) return;
+        if (Notification.permission === 'granted') {
+            showToast('🔔 Notifications already enabled!', '#00d68f', '#000');
+            return;
+        }
+        if (Notification.permission === 'denied') {
+            showToast('❌ Notifications blocked — enable in browser settings', '#ff4d6a', '#fff');
+            return;
+        }
+        // Must be triggered by user gesture
+        const perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+            showToast('🔔 Notifications enabled! You will get updates.', '#00d68f', '#000');
+            localStorage.setItem('gg_push_enabled', '1');
+            updateNotifPermUI();
+            pushNotif('🔔 Notifications Active', 'You will now receive giveaway alerts, winner announcements, and updates!', 'info');
+        } else {
+            showToast('Notification permission denied', '#ff4d6a', '#fff');
+        }
+    }
+
+    function sendBrowserNotif(title, body, icon) {
+        if (Notification.permission !== 'granted') return;
+        try {
+            new Notification(title, {
+                body: body,
+                icon: icon || 'kaddu.png',
+                badge: 'kaddu.png',
+                vibrate: [200, 100, 200],
+                tag: 'guild-glory-' + Date.now()
+            });
+        } catch(e) {}
+    }
+
+    function updateNotifPermUI() {
+        const btn = document.getElementById('notifPermBtn');
+        if (!btn) return;
+        if (!('Notification' in window)) {
+            btn.textContent = '🔕 Not Supported';
+            btn.style.opacity = '0.4';
+            return;
+        }
+        if (Notification.permission === 'granted') {
+            btn.textContent = '🔔 Notifications ON';
+            btn.style.background = 'rgba(0,214,143,0.12)';
+            btn.style.borderColor = 'rgba(0,214,143,0.4)';
+            btn.style.color = 'var(--green)';
+        } else if (Notification.permission === 'denied') {
+            btn.textContent = '🔕 Blocked — Enable in Settings';
+            btn.style.opacity = '0.6';
+        } else {
+            btn.textContent = '🔔 Enable Notifications';
+            btn.style.background = '';
+            btn.style.color = '';
+        }
+    }
+
+    // Auto-prompt after login (once, non-blocking)
+    function maybePromptNotifPermission() {
+        if (!('Notification' in window)) return;
+        if (Notification.permission === 'default' && !localStorage.getItem('gg_notif_asked')) {
+            localStorage.setItem('gg_notif_asked', '1');
+            // Show a gentle in-app prompt instead of immediately asking
+            showNotifPermPrompt();
+        }
+        updateNotifPermUI();
+    }
+
+    function showNotifPermPrompt() {
+        const existing = document.getElementById('notifPermPrompt');
+        if (existing) return;
+        const prompt = document.createElement('div');
+        prompt.id = 'notifPermPrompt';
+        prompt.style.cssText = `
+            position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
+            background:linear-gradient(135deg,rgba(20,12,35,0.98),rgba(30,18,50,0.98));
+            border:1px solid rgba(77,159,255,0.35); border-radius:18px;
+            padding:16px 18px; width:calc(100% - 40px); max-width:420px;
+            z-index:9998; box-shadow:0 8px 40px rgba(0,0,0,0.6);
+            animation: slideUp 0.35s ease;
+        `;
+        prompt.innerHTML = `
+            <div style="display:flex;gap:12px;align-items:center;">
+                <div style="font-size:2rem;flex-shrink:0;">🔔</div>
+                <div style="flex:1;">
+                    <div style="font-family:var(--font-display);font-size:0.72rem;color:var(--text);font-weight:800;margin-bottom:4px;">Enable Notifications?</div>
+                    <div style="font-size:0.76rem;color:var(--muted);line-height:1.4;">Get instant alerts when a winner is announced, milestones are reached, or you receive a reward!</div>
+                </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px;">
+                <button onclick="requestPushPermission(true);document.getElementById('notifPermPrompt').remove();" style="flex:2;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#4d9fff,#6a6fff);color:#fff;font-family:var(--font-display);font-size:0.58rem;font-weight:700;cursor:pointer;letter-spacing:0.5px;">🔔 YES, NOTIFY ME</button>
+                <button onclick="document.getElementById('notifPermPrompt').remove();" style="flex:1;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:var(--muted);font-family:var(--font-display);font-size:0.58rem;cursor:pointer;">NOT NOW</button>
+            </div>
+        `;
+        document.body.appendChild(prompt);
+        setTimeout(() => { if (prompt.parentNode) prompt.remove(); }, 12000);
+    }
+
+    // pushNotif override removed — sendBrowserNotif called inside original
 
     // ── ADMIN ──
     function unlockAdmin() {
@@ -2085,6 +2433,16 @@
         await fbRemoveEntry(id);
         // local arrays will update via listeners automatically
         sendWinnerToTelegram(id);
+        // Push notification to all users (stored in Firebase)
+        try {
+            const { db, ref, push } = window._fb;
+            await push(ref(db, 'notifications'), {
+                title: '🏆 Milestone Winner!',
+                msg: 'Guild ID ' + id + ' has won the giveaway at ' + currentSubs.toLocaleString() + ' subscribers! 🎉 Congratulations!',
+                type: 'winner',
+                ts: Date.now()
+            });
+        } catch(e) {}
     }
     async function sendWinnerToTelegram(id) {
         const msg=`🚨 MILESTONE REACHED! 🚨\n🏆 WINNER: ${id}\nSubs: ${currentSubs.toLocaleString()}\n\nUpload proof via Admin Panel.`;
@@ -2119,6 +2477,35 @@
                 feed.textContent = 'No shares yet';
             }
         }
+        // Update referral unlock progress bar
+        const joins = d.joins || 0;
+        const bar = document.getElementById('refUnlockBar');
+        if (bar && joins < 5) {
+            bar.style.display = 'block';
+            const pct = Math.min(100, (joins / 5) * 100);
+            const fillEl = document.getElementById('refUnlockFill');
+            const countEl = document.getElementById('refUnlockCount');
+            const msgEl = document.getElementById('refUnlockMsg');
+            if (fillEl) fillEl.style.width = pct + '%';
+            if (countEl) countEl.textContent = joins + '/5';
+            const need = 5 - joins;
+            if (msgEl) msgEl.textContent = need > 0
+                ? '👉 ' + need + ' more join' + (need>1?'s':'') + ' needed to unlock Guild ID submission.'
+                : '✅ Unlocked! You can now submit your Guild ID.';
+        } else if (bar && joins >= 5) {
+            bar.style.display = 'none';
+        }
+        // Update lock banners on confirm buttons
+        const needed = Math.max(0, 5 - joins);
+        const unlocked = joins >= 5;
+        ['homeRefLockBanner','taskRefLockBanner'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = unlocked ? 'none' : 'block';
+        });
+        ['homeRefNeeded','taskRefNeeded'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = needed;
+        });
     }
 
     async function shareChannel() {
