@@ -1532,10 +1532,10 @@
     let premActivePSection = 'select';
 
     function initState() {
-        guildIds = JSON.parse(localStorage.getItem('savedGuildIds')) || [];
-        guildServers = JSON.parse(localStorage.getItem('savedGuildServers')) || {};
-        winners = JSON.parse(localStorage.getItem('savedWinnersHistory')) || [];
+        // Shared data (Firebase): guildIds, winners loaded via listeners below
+        guildIds = []; guildServers = {}; winners = [];
         currentSubs = 0; isSpinning = false;
+        // Milestone index is per-device (admin controlled) — keep in localStorage
         currentMilestoneIndex = parseInt(localStorage.getItem('savedMilestoneIndex')) || 0;
         totalShares = parseInt(localStorage.getItem('savedShareCount')) || 0;
         trackingStartTime = Date.now(); subsAtStart = 0;
@@ -1546,9 +1546,39 @@
         ctx = canvas.getContext('2d');
         document.getElementById('shareCount').innerText = totalShares;
         document.getElementById('premServerPanel').classList.add('show');
-        updateLeaderboardUI(); updateWinnerBoardUI(); updateStatsUI(); drawWheel(); updateMilestoneText();
+        drawWheel(); updateMilestoneText();
         fetchSubscribers();
         setInterval(fetchSubscribers, 60000);
+
+        // ── FIREBASE REAL-TIME LISTENERS ──
+        // All users see the same leaderboard and winners in real-time
+        fbListenEntries(function(entries) {
+            guildIds = entries.map(e => e.guildId);
+            guildServers = {};
+            entries.forEach(e => { guildServers[e.guildId] = e.server; });
+            updateLeaderboardUI(); updateStatsUI(); drawWheel();
+            // If current user already submitted, show the badge
+            const curUser = getCurrentUser();
+            const myEntry = entries.find(e => e.username === curUser);
+            if (myEntry) showAlreadySubmittedBadge(myEntry.guildId);
+        });
+
+        fbListenWinners(function(wins) {
+            winners = wins;
+            updateWinnerBoardUI(); updateStatsUI();
+        });
+    }
+
+    function showAlreadySubmittedBadge(guildId) {
+        ['homeGuildCard', 'submitWrapper'].forEach(cid => {
+            const el = document.getElementById(cid);
+            if (!el || el.querySelector('.already-badge')) return;
+            const badge = document.createElement('div');
+            badge.className = 'already-badge';
+            badge.style.cssText = 'position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(7,1,14,0.88);backdrop-filter:blur(8px);border-radius:18px;padding:18px;text-align:center;';
+            badge.innerHTML = `<div style="font-size:2rem;">✅</div><div style="font-family:var(--font-display);font-size:0.6rem;letter-spacing:0.3px;color:var(--green);">ENTRY SUBMITTED</div><div style="font-family:var(--font-mono);font-size:1rem;color:var(--gold);">${guildId}</div><div style="font-size:0.8rem;color:var(--muted);">Your Guild ID is on the wheel!</div>`;
+            el.appendChild(badge);
+        });
     }
 
     // ── TOAST ──
@@ -1730,26 +1760,27 @@
         badge.innerHTML=`✓ ${serverName.toUpperCase()} SELECTED`; badge.classList.add('show');
         document.getElementById('homeConfirmBtn').classList.add('show');
     }
-    function addGuildIdHome() {
+    async function addGuildIdHome() {
         const input=document.getElementById('guildInputHome');
         const id=input.value.trim();
         if (!id) { showToast('⚠ Enter your Guild ID!','#ff4d6a','#fff'); return; }
         if (!homeSelectedServer) { showToast('⚠ Select your server!','#ff4d6a','#fff'); return; }
-        if (guildIds.includes(id)) { showToast('⚠ Guild ID already on wheel!','#ff6b35','#000'); return; }
-        // ONE GUILD PER USER CHECK
         const curUser = getCurrentUser();
         const userSubmissions = JSON.parse(localStorage.getItem('savedUserSubmissions')) || {};
         if (userSubmissions[curUser]) { showToast('⚠ You already submitted a Guild ID!','#ff4d6a','#fff'); return; }
-        guildIds.push(id); guildServers[id]=homeSelectedServer;
+        const btn = document.getElementById('homeConfirmBtn');
+        btn.disabled = true; btn.textContent = 'Adding...';
+        const ok = await fbAddEntry(id, homeSelectedServer, curUser);
+        btn.disabled = false; btn.textContent = '🎯 CONFIRM & JOIN WHEEL';
+        if (!ok) return;
         userSubmissions[curUser] = id;
         localStorage.setItem('savedUserSubmissions', JSON.stringify(userSubmissions));
-        saveData(); input.value=''; homeSelectedServer='';
+        input.value=''; homeSelectedServer='';
         document.getElementById('homeServerPanel').classList.remove('show');
         document.getElementById('homeSelectedBadge').classList.remove('show');
         document.getElementById('homeConfirmBtn').classList.remove('show');
         document.querySelectorAll('#homeServerGrid .server-btn').forEach(b=>b.classList.remove('selected'));
-        updateLeaderboardUI(); updateStatsUI(); drawWheel();
-        const msg=`🎉 NEW ENTRY!\n👤 User: ${curUser}\n🆔 Guild ID: ${id}\n🌐 Server: ${guildServers[id]}\n🎯 Kaddu_YT9 Guild Glory`;
+        const msg=`🎉 NEW ENTRY!\n👤 User: ${curUser}\n🆔 Guild ID: ${id}\n🌐 Server: ${homeSelectedServer}\n🎯 Kaddu_YT9 Guild Glory`;
         fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`).catch(()=>{});
         showToast('🎉 ADDED TO THE WHEEL!','#00d68f','#000');
     }
@@ -1769,26 +1800,27 @@
         badge.innerHTML=`✓ ${serverName.toUpperCase()} SELECTED`; badge.classList.add('show');
         document.getElementById('taskConfirmBtn').classList.add('show');
     }
-    function addGuildId() {
+    async function addGuildId() {
         const input=document.getElementById('guildInput');
         const id=input.value.trim();
         if (!id) { showToast('⚠ Enter your Guild ID!','#ff4d6a','#fff'); return; }
         if (!selectedServer) { showToast('⚠ Select your server!','#ff4d6a','#fff'); return; }
-        if (guildIds.includes(id)) { showToast('⚠ Guild ID already on wheel!','#ff6b35','#000'); return; }
-        // ONE GUILD PER USER CHECK
         const curUser = getCurrentUser();
         const userSubmissions = JSON.parse(localStorage.getItem('savedUserSubmissions')) || {};
         if (userSubmissions[curUser]) { showToast('⚠ You already submitted a Guild ID!','#ff4d6a','#fff'); return; }
-        guildIds.push(id); guildServers[id]=selectedServer;
+        const btn = document.getElementById('taskConfirmBtn');
+        btn.disabled = true; btn.textContent = 'Adding...';
+        const ok = await fbAddEntry(id, selectedServer, curUser);
+        btn.disabled = false; btn.textContent = '🎯 CONFIRM & JOIN WHEEL';
+        if (!ok) return;
         userSubmissions[curUser] = id;
         localStorage.setItem('savedUserSubmissions', JSON.stringify(userSubmissions));
-        saveData(); input.value=''; selectedServer='';
+        input.value=''; selectedServer='';
         document.getElementById('taskServerPanel').classList.remove('show');
         document.getElementById('taskSelectedBadge').classList.remove('show');
         document.getElementById('taskConfirmBtn').classList.remove('show');
         document.querySelectorAll('#taskServerGrid .server-btn').forEach(b=>b.classList.remove('selected'));
-        updateLeaderboardUI(); updateStatsUI(); drawWheel();
-        const msg=`🎉 NEW GIVEAWAY ENTRY!\n👤 User: ${curUser}\n🆔 Guild ID: ${id}\n🌐 Server: ${guildServers[id]}\n🎯 Kaddu_YT9 Guild Glory`;
+        const msg=`🎉 NEW GIVEAWAY ENTRY!\n👤 User: ${curUser}\n🆔 Guild ID: ${id}\n🌐 Server: ${selectedServer}\n🎯 Kaddu_YT9 Guild Glory`;
         fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`).catch(()=>{});
         showToast('🎯 ADDED TO THE WHEEL!','#00d68f','#000');
     }
@@ -1845,21 +1877,18 @@
         }
     }
 
-    // ── SAVE / RESET ──
     function saveData() {
-        localStorage.setItem('savedGuildIds',JSON.stringify(guildIds));
-        localStorage.setItem('savedGuildServers',JSON.stringify(guildServers));
-        localStorage.setItem('savedWinnersHistory',JSON.stringify(winners));
-        localStorage.setItem('savedMilestoneIndex',currentMilestoneIndex);
+        // Only milestone index needs localStorage now — entries/winners live in Firebase
+        localStorage.setItem('savedMilestoneIndex', currentMilestoneIndex);
     }
-    function resetAllData() {
+    async function resetAllData() {
         if (!confirm("⚠ This will ONLY reset:\n• Leaderboard Guild IDs\n• Spin Wheel entries\n• Winners history\n• Milestone index\n\nUser accounts & shares will NOT be deleted.\n\nContinue?")) return;
-        ['savedGuildIds','savedGuildServers','savedWinnersHistory','savedMilestoneIndex','savedUserSubmissions'].forEach(k=>localStorage.removeItem(k));
-        guildIds = []; guildServers = {}; winners = []; currentMilestoneIndex = 0; currentRotation = 0;
+        await fbClearAll();
+        ['savedMilestoneIndex','savedUserSubmissions'].forEach(k=>localStorage.removeItem(k));
+        currentMilestoneIndex = 0; currentRotation = 0;
         if (canvas) { canvas.style.transform = 'rotate(0deg)'; drawWheel(); }
-        updateLeaderboardUI(); updateWinnerBoardUI(); updateStatsUI();
         document.getElementById('winnerAnnounce').innerText = 'Awaiting Target...';
-        showToast('\u2705 Giveaway data reset! User accounts kept.', '#00d68f', '#000');
+        showToast('✅ Giveaway data reset! User accounts kept.', '#00d68f', '#000');
     }
 
     // ── ADMIN ──
@@ -1898,16 +1927,13 @@
         const id=document.getElementById('proofWinnerId').value.trim();
         const files=document.getElementById('proofImageFiles').files;
         if (!id||!files.length){showToast('⚠ Provide ID and photo.','#ff6b35','#000');return;}
-        const idx=winners.findIndex(w=>w.id===id);
-        if (idx===-1){showToast('⚠ Winner ID not found.','#ff4da6','#fff');return;}
         try {
             const imgs=[];
             for (let i=0;i<files.length;i++) imgs.push(await compressImage(files[i]));
-            winners[idx].proofs=imgs;
-            saveData();updateWinnerBoardUI();
-            showToast('✅ Proof uploaded!','#00d68f','#000');
-            switchTab('history');
-        } catch{showToast('❌ Error saving.','#ff4da6','#fff');}
+            const ok = await fbAddProof(id, imgs);
+            if (ok) { showToast('✅ Proof uploaded!','#00d68f','#000'); switchTab('history'); }
+            else showToast('⚠ Winner ID not found in Firebase.','#ff4da6','#fff');
+        } catch{ showToast('❌ Error saving proof.','#ff4da6','#fff'); }
     }
 
     // ── UI UPDATES ──
@@ -1939,8 +1965,9 @@
         }
         board.innerHTML='';
         winners.forEach(w=>{
+            const wid = w.guildId || w.id || '—';
             const d=document.createElement('div'); d.className='winner-card';
-            let html=`<div class="winner-top"><span class="winner-id">${w.id}</span><span class="winner-badge">WINNER</span></div>`;
+            let html=`<div class="winner-top"><span class="winner-id">${wid}</span><span class="winner-badge">WINNER</span></div>`;
             if (w.proofs&&w.proofs.length){
                 html+=`<div class="proof-gallery">`;
                 w.proofs.forEach(img=>{html+=`<img src="${img}" class="proof-img" onclick="window.open('${img}')">`;});
@@ -1983,19 +2010,18 @@
         const rand=Math.floor(Math.random()*360);
         currentRotation+=extra+rand;
         canvas.style.transform=`rotate(${currentRotation}deg)`;
-        setTimeout(()=>{
+        setTimeout(async ()=>{
             const deg=360/guildIds.length;
             let idx=Math.floor((360-(currentRotation%360)+270)%360/deg);
             const winner=guildIds[idx];
             document.getElementById('winnerAnnounce').innerHTML=`🎉 WINNER: ${winner} 🎉`;
-            addWinner(winner);isSpinning=false;
+            await addWinner(winner); isSpinning=false;
         },5000);
     }
-    function addWinner(id) {
-        winners.unshift({id,proofs:[]});
-        guildIds=guildIds.filter(g=>g!==id);
-        delete guildServers[id];
-        saveData();updateLeaderboardUI();updateWinnerBoardUI();updateStatsUI();drawWheel();
+    async function addWinner(id) {
+        await fbAddWinner({guildId: id, proofs: [], ts: Date.now()});
+        await fbRemoveEntry(id);
+        // local arrays will update via listeners automatically
         sendWinnerToTelegram(id);
     }
     async function sendWinnerToTelegram(id) {
@@ -2154,12 +2180,127 @@
     function checkMilestones() {
         if (currentMilestoneIndex >= milestones.length) return;
         if (currentSubs >= milestones[currentMilestoneIndex] && !isSpinning && guildIds.length > 0) {
-            document.getElementById('winnerAnnounce').innerText = '\uD83D\uDEA8 MILESTONE! SPINNING...';
+            document.getElementById('winnerAnnounce').innerText = '🚨 MILESTONE! SPINNING...';
             spinWheel();
             currentMilestoneIndex++; saveData(); updateMilestoneText();
             trackingStartTime = Date.now(); subsAtStart = currentSubs;
         }
     }
+    // ── FIREBASE BRIDGE (called after Firebase module loads) ──
+    async function fbAddEntry(guildId, server, username) {
+        if (!window._fbReady) { showToast('⚠ DB not ready, try again','#ff6b35','#000'); return false; }
+        const { db, ref, get, push } = window._fb;
+        const snap = await get(ref(db, 'entries'));
+        if (snap.exists()) {
+            for (const k in snap.val()) {
+                if (snap.val()[k].guildId === guildId) {
+                    showToast('⚠ Guild ID already on wheel!','#ff6b35','#000');
+                    return false;
+                }
+            }
+        }
+        await push(ref(db, 'entries'), { guildId, server, username, ts: Date.now() });
+        return true;
+    }
+
+    async function fbRemoveEntry(guildId) {
+        if (!window._fbReady) return;
+        const { db, ref, get, remove } = window._fb;
+        const snap = await get(ref(db, 'entries'));
+        if (!snap.exists()) return;
+        for (const k in snap.val()) {
+            if (snap.val()[k].guildId === guildId) {
+                await remove(ref(db, 'entries/' + k)); break;
+            }
+        }
+    }
+
+    function fbListenEntries(cb) {
+        if (!window._fbReady) { document.addEventListener('fbReady', () => fbListenEntries(cb), {once:true}); return; }
+        const { db, ref, onValue } = window._fb;
+        onValue(ref(db, 'entries'), snap => {
+            if (snap.exists()) {
+                cb(Object.entries(snap.val()).map(([k,v]) => ({...v, _key: k})));
+            } else cb([]);
+        });
+    }
+
+    function fbListenWinners(cb) {
+        if (!window._fbReady) { document.addEventListener('fbReady', () => fbListenWinners(cb), {once:true}); return; }
+        const { db, ref, onValue } = window._fb;
+        onValue(ref(db, 'winners'), snap => {
+            if (snap.exists()) {
+                cb(Object.entries(snap.val()).map(([k,v]) => ({...v, _key: k})));
+            } else cb([]);
+        });
+    }
+
+    async function fbAddWinner(data) {
+        if (!window._fbReady) return;
+        const { db, ref, push } = window._fb;
+        await push(ref(db, 'winners'), data);
+    }
+
+    async function fbAddProof(guildId, proofs) {
+        if (!window._fbReady) return false;
+        const { db, ref, get, set } = window._fb;
+        const snap = await get(ref(db, 'winners'));
+        if (!snap.exists()) return false;
+        for (const k in snap.val()) {
+            if (snap.val()[k].guildId === guildId) {
+                await set(ref(db, 'winners/' + k + '/proofs'), proofs);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    async function fbClearAll() {
+        if (!window._fbReady) return;
+        const { db, ref, remove } = window._fb;
+        await remove(ref(db, 'entries'));
+        await remove(ref(db, 'winners'));
+    }
+
     </script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FIREBASE REALTIME DATABASE — SHARED DATA ACROSS ALL USERS
+     ═══════════════════════════════════════════════════════════════
+     HOW TO SET UP (one-time, 5 minutes):
+     1. Go to https://console.firebase.google.com
+     2. Click "Add project" → name it (e.g. guildglory) → Create
+     3. Click "</>" (Web app) → Register → Copy the firebaseConfig
+     4. Go to Build → Realtime Database → Create database
+        → Choose Singapore → Start in TEST MODE → Enable
+     5. Paste your firebaseConfig values below where it says PASTE_HERE
+     6. Upload this file to GitHub
+     ═══════════════════════════════════════════════════════════════ -->
+<script type="module">
+  import { initializeApp }              from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, get, set,
+           push, remove, onValue }      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  // ┌─────────────────────────────────────────────────────┐
+  // │  PASTE YOUR FIREBASE CONFIG HERE (replace all PASTE_HERE values) │
+  // └─────────────────────────────────────────────────────┘
+  const firebaseConfig = {
+    apiKey:            "AIzaSyAx_Waa8Qv6bX5_metNRHlssq7fGfkzlr0",
+    authDomain:        "guildglory-2412b.firebaseapp.com",
+    databaseURL:       "https://guildglory-2412b-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:         "guildglory-2412b",
+    storageBucket:     "guildglory-2412b.firebasestorage.app",
+    messagingSenderId: "638036527373",
+    appId:             "1:638036527373:web:287bd3777afa472b5c0844"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+
+  // Expose to the main script
+  window._fb = { db, ref, get, set, push, remove, onValue };
+  window._fbReady = true;
+  document.dispatchEvent(new Event('fbReady'));
+</script>
 </body>
 </html>
