@@ -2122,8 +2122,10 @@
             updateWinnerBoardUI(); updateStatsUI();
         });
 
-        // Global notifications from Firebase
+        // Global notifications from Firebase (admin broadcasts)
         listenGlobalNotifs();
+        // Personal notifications for this user only (link clicks etc.)
+        listenUserNotifs();
         updateNotifBadge();
     }
 
@@ -2676,16 +2678,14 @@
     }
     function markAllRead() {
         try {
-            const notifs = getNotifs();
-            if (!notifs.length) return;
-            notifs.forEach(n => { n.read = true; });
-            saveNotifs(notifs);
+            // Clear ALL notifications from list and badge
+            saveNotifs([]);
             updateNotifBadge();
             renderNotifList();
-            // Visual feedback on button
+            // Visual feedback
             const btn = document.querySelector('.notif-mark-btn');
             if (btn) {
-                btn.textContent = '✓ All read';
+                btn.textContent = '✓ Cleared';
                 btn.style.color = 'var(--green)';
                 btn.style.borderColor = 'rgba(0,214,143,0.4)';
                 setTimeout(() => {
@@ -2715,6 +2715,39 @@
     }
 
     // Listen for global notifications from Firebase
+    // Listen to THIS user's personal notifications ONLY (link clicks, referrals)
+    function listenUserNotifs() {
+        if (!window._fbReady) { document.addEventListener('fbReady', listenUserNotifs, {once:true}); return; }
+        const u = getCurrentUser();
+        if (!u) return;  // safety: never listen without a logged-in user
+        const { db, ref, onValue } = window._fb;
+        // Key is PER USER so no other user's data can ever bleed in
+        const seenKey = 'gg_seen_user_notifs_' + u;
+        let seen = new Set(JSON.parse(localStorage.getItem(seenKey) || '[]'));
+        let isFirstLoad = true;
+        // Path: userNotifs/{thisUser} — Firebase rules will only allow reading own node
+        onValue(ref(db, 'userNotifs/' + u), snap => {
+            if (!snap.exists()) { isFirstLoad = false; return; }
+            const all = snap.val();
+            const newOnes = [];
+            Object.entries(all).forEach(([key, n]) => {
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    newOnes.push({ ...n, _key: key });
+                }
+            });
+            localStorage.setItem(seenKey, JSON.stringify([...seen]));
+            if (isFirstLoad) {
+                // On login: silently add to bell only, no popup
+                newOnes.forEach(n => pushNotif(n.title, n.msg, n.type || 'info'));
+                isFirstLoad = false;
+            } else {
+                // New notification while online: show bottom sheet
+                newOnes.forEach(n => onNewAdminNotif(n));
+            }
+        });
+    }
+
     function listenGlobalNotifs() {
         if (!window._fbReady) { document.addEventListener('fbReady', listenGlobalNotifs, {once:true}); return; }
         const { db, ref, onValue } = window._fb;
@@ -3403,13 +3436,11 @@
 
             sessionStorage.removeItem('gg_referrer');
 
-            // Notify referrer via Firebase notification
-            await push(ref(db, 'notifications'), {
+            // Notify ONLY the referrer — stored under their personal notif node
+            await push(ref(db, 'userNotifs/' + referrer), {
                 title: '🎉 New Referral Join!',
                 msg: newUsername + ' joined using your referral link! (' + (current + 1) + ' total joins)',
-                type: 'gift',
-                ts: Date.now(),
-                forUser: referrer  // targeted notification
+                type: 'gift', ts: Date.now()
             });
 
             console.log('Referrer credited:', referrer, '→', current + 1, 'joins');
@@ -3551,10 +3582,10 @@
             const total = cSnap.exists() ? (cSnap.val() || 0) : 0;
             await set(clickRef, total + 1);
 
-            // Notify the link owner
-            await push(ref(db, 'notifications'), {
+            // Notify ONLY the link owner — stored under their personal notif node
+            await push(ref(db, 'userNotifs/' + by), {
                 title: '🔗 Your link was clicked!',
-                msg: 'Someone opened your tracking link! You now have ' + (total + 1) + ' total clicks.',
+                msg: 'Someone clicked your tracking link! You now have ' + (total + 1) + ' click' + (total+1>1?'s':'') + ' total.',
                 type: 'gift', ts: Date.now()
             });
 
