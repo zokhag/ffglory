@@ -2214,18 +2214,24 @@
     // ── FIREBASE BRIDGE (called after Firebase module loads) ──
     async function fbAddEntry(guildId, server, username) {
         if (!window._fbReady) { showToast('⚠ DB not ready, try again','#ff6b35','#000'); return false; }
-        const { db, ref, get, push } = window._fb;
-        const snap = await get(ref(db, 'entries'));
-        if (snap.exists()) {
-            for (const k in snap.val()) {
-                if (snap.val()[k].guildId === guildId) {
-                    showToast('⚠ Guild ID already on wheel!','#ff6b35','#000');
-                    return false;
+        try {
+            const { db, ref, get, push } = window._fb;
+            const snap = await get(ref(db, 'entries'));
+            if (snap.exists()) {
+                for (const k in snap.val()) {
+                    if (snap.val()[k].guildId === guildId) {
+                        showToast('⚠ Guild ID already on wheel!','#ff6b35','#000');
+                        return false;
+                    }
                 }
             }
+            await push(ref(db, 'entries'), { guildId, server, username, ts: Date.now() });
+            return true;
+        } catch(e) {
+            console.error('Firebase error:', e);
+            showToast('❌ DB Error: ' + e.code, '#ff4da6', '#fff');
+            return false;
         }
-        await push(ref(db, 'entries'), { guildId, server, username, ts: Date.now() });
-        return true;
     }
 
     async function fbRemoveEntry(guildId) {
@@ -2312,7 +2318,7 @@
   const firebaseConfig = {
     apiKey:            "AIzaSyAx_Waa8Qv6bX5_metNRHlssq7fGfkzlr0",
     authDomain:        "guildglory-2412b.firebaseapp.com",
-    databaseURL:       "https://guildglory-2412b-default-rtdb.asia-southeast1.firebasedatabase.app",
+    databaseURL:       "https://guildglory-2412b-default-rtdb.firebaseio.com",
     projectId:         "guildglory-2412b",
     storageBucket:     "guildglory-2412b.firebasestorage.app",
     messagingSenderId: "638036527373",
