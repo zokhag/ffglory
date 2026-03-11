@@ -748,6 +748,276 @@
         .content-area { scroll-behavior: smooth; }
         button { will-change: transform; }
         .card, .task-btn, .lb-item, .price-tile, .server-btn { will-change: transform; }
+
+        /* ── ADMIN NOTIFICATION BOTTOM SHEET ── */
+        .admin-notif-overlay {
+            position: fixed; inset: 0; z-index: 99999;
+            background: rgba(0,0,0,0.6);
+            display: none; align-items: flex-end; justify-content: center;
+        }
+        .admin-notif-overlay.show { display: flex; }
+        .admin-notif-sheet {
+            width: 100%; max-width: 480px;
+            background: linear-gradient(160deg, rgba(18,8,36,0.99) 0%, rgba(10,4,22,0.99) 100%);
+            border-radius: 24px 24px 0 0;
+            border-top: 1px solid rgba(77,159,255,0.25);
+            border-left: 1px solid rgba(77,159,255,0.1);
+            border-right: 1px solid rgba(77,159,255,0.1);
+            padding: 10px 20px 40px;
+            transform: translateY(100%);
+            transition: transform 0.38s cubic-bezier(0.32,0.72,0,1);
+            box-shadow: 0 -12px 60px rgba(0,0,0,0.7);
+        }
+        .admin-notif-overlay.show .admin-notif-sheet {
+            transform: translateY(0);
+        }
+        .admin-notif-handle {
+            width: 40px; height: 4px; border-radius: 99px;
+            background: rgba(255,255,255,0.15);
+            margin: 10px auto 20px; cursor: grab;
+        }
+        .admin-notif-type-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 12px; border-radius: 99px;
+            font-family: var(--font-display); font-size: 0.45rem;
+            letter-spacing: 1.5px; font-weight: 700;
+            margin-bottom: 14px;
+        }
+        .admin-notif-icon-big { font-size: 2.4rem; margin-bottom: 12px; display: block; }
+        .admin-notif-title {
+            font-family: var(--font-display); font-size: 1.15rem;
+            font-weight: 900; color: #fff; line-height: 1.3;
+            margin-bottom: 10px;
+        }
+        .admin-notif-msg {
+            font-size: 0.88rem; color: rgba(255,255,255,0.55);
+            line-height: 1.65; margin-bottom: 24px;
+        }
+        .admin-notif-dismiss {
+            width: 100%; padding: 14px; border-radius: 14px;
+            border: none; cursor: pointer; font-weight: 700;
+            font-family: var(--font-display); font-size: 0.6rem;
+            letter-spacing: 1px; color: #fff;
+        }
+
+
+        /* ── NOTIFICATION DROPDOWN ── */
+        .notif-bell-wrap { position:relative; display:inline-flex; align-items:center; }
+        .notif-badge {
+            position:absolute; top:-4px; right:-5px;
+            background:#ff4d6a; color:#fff;
+            font-size:0.5rem; font-weight:900;
+            min-width:16px; height:16px; border-radius:99px;
+            display:none; align-items:center; justify-content:center;
+            font-family:'Plus Jakarta Sans',sans-serif;
+            border:2px solid #07010e; padding:0 3px;
+        }
+        .notif-dropdown {
+            position:fixed;
+            top:62px; left:50%; transform:translateX(-50%);
+            width:calc(100% - 24px); max-width:420px;
+            background:linear-gradient(135deg,rgba(18,8,34,0.99),rgba(12,6,24,0.99));
+            border:1px solid rgba(77,159,255,0.22);
+            border-radius:18px;
+            box-shadow:0 12px 48px rgba(0,0,0,0.7),0 0 0 1px rgba(77,159,255,0.08);
+            z-index:9990;
+            max-height:0; overflow:hidden;
+            opacity:0; pointer-events:none;
+            transition:max-height 0.32s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease;
+        }
+        .notif-dropdown.open {
+            max-height:72vh; overflow-y:auto;
+            opacity:1; pointer-events:all;
+        }
+        .notif-dropdown-inner { padding:14px 14px 10px; }
+        .notif-header-row {
+            display:flex; align-items:center; justify-content:space-between;
+            margin-bottom:12px; padding-bottom:10px;
+            border-bottom:1px solid rgba(255,255,255,0.07);
+        }
+        .notif-header-title {
+            font-family:'Plus Jakarta Sans',sans-serif;
+            font-size:0.78rem; font-weight:800; color:#fff; letter-spacing:0.5px;
+        }
+        .notif-mark-btn {
+            font-size:0.58rem; padding:4px 9px; border-radius:7px;
+            border:1px solid rgba(77,159,255,0.28); background:transparent;
+            color:rgba(77,159,255,0.8); cursor:pointer;
+            font-family:'Plus Jakarta Sans',sans-serif; font-weight:600;
+        }
+        .notif-item {
+            display:flex; gap:10px; align-items:flex-start;
+            padding:10px 10px; border-radius:11px; margin-bottom:5px;
+            background:rgba(255,255,255,0.025);
+            border:1px solid rgba(255,255,255,0.04);
+            cursor:pointer; transition:background 0.15s;
+        }
+        .notif-item:hover { background:rgba(77,159,255,0.07); }
+        .notif-item.unread { background:rgba(77,159,255,0.07); border-color:rgba(77,159,255,0.18); }
+        .notif-item.unread .notif-item-title { color:#4d9fff; }
+        .notif-item-icon { font-size:1.15rem; flex-shrink:0; margin-top:1px; }
+        .notif-item-body { flex:1; min-width:0; }
+        .notif-item-title { font-size:0.8rem; font-weight:700; color:#e8e0ff; margin-bottom:3px; line-height:1.3; }
+        .notif-item-msg { font-size:0.72rem; color:rgba(255,255,255,0.45); line-height:1.4; }
+        .notif-item-time { font-size:0.58rem; color:rgba(255,255,255,0.22); margin-top:4px; font-family:'DM Mono',monospace; }
+        .notif-unread-dot {
+            width:7px; height:7px; border-radius:50%;
+            background:#4d9fff; flex-shrink:0; margin-top:5px;
+        }
+        .notif-empty { text-align:center; padding:30px 10px; color:rgba(255,255,255,0.3); font-size:0.78rem; }
+        /* click outside overlay */
+        .notif-overlay {
+            position:fixed; inset:0; z-index:9989;
+            display:none;
+        }
+        .notif-overlay.open { display:block; }
+
+
+        /* ── SETTINGS TAB ── */
+        .settings-section { margin-bottom: 10px; }
+        .settings-section-label {
+            font-family: var(--font-display); font-size: 0.42rem;
+            letter-spacing: 2px; color: rgba(255,255,255,0.3);
+            padding: 0 4px; margin-bottom: 6px; text-transform: uppercase;
+        }
+        .settings-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 16px; overflow: hidden;
+        }
+        .settings-row {
+            display: flex; align-items: center; gap: 14px;
+            padding: 15px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer; transition: background 0.15s;
+            text-decoration: none;
+        }
+        .settings-row:last-child { border-bottom: none; }
+        .settings-row:active { background: rgba(255,255,255,0.04); }
+        .settings-row-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; flex-shrink: 0;
+        }
+        .settings-row-body { flex: 1; min-width: 0; }
+        .settings-row-title {
+            font-size: 0.88rem; font-weight: 600; color: var(--text);
+            margin-bottom: 2px;
+        }
+        .settings-row-sub {
+            font-size: 0.7rem; color: var(--muted); line-height: 1.3;
+        }
+        .settings-row-arrow {
+            color: rgba(255,255,255,0.2); font-size: 0.75rem; flex-shrink: 0;
+        }
+        .settings-toggle {
+            width: 42px; height: 24px; border-radius: 99px;
+            background: rgba(255,255,255,0.1); border: none; cursor: pointer;
+            position: relative; transition: background 0.2s; flex-shrink: 0;
+        }
+        .settings-toggle.on { background: #4d9fff; }
+        .settings-toggle::after {
+            content: ''; position: absolute;
+            width: 18px; height: 18px; border-radius: 50%;
+            background: #fff; top: 3px; left: 3px;
+            transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        }
+        .settings-toggle.on::after { transform: translateX(18px); }
+        /* Profile badge */
+        .settings-profile-card {
+            background: linear-gradient(135deg, rgba(77,159,255,0.08), rgba(106,111,255,0.06));
+            border: 1px solid rgba(77,159,255,0.18);
+            border-radius: 18px; padding: 20px 18px;
+            display: flex; align-items: center; gap: 16px;
+            margin-bottom: 20px;
+        }
+        .settings-avatar-big {
+            width: 56px; height: 56px; border-radius: 16px;
+            background: linear-gradient(135deg, #4d9fff, #6a6fff);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.6rem; font-weight: 900; color: #fff;
+            font-family: var(--font-display); flex-shrink: 0;
+        }
+        .settings-username-big {
+            font-family: var(--font-display); font-size: 1rem;
+            font-weight: 800; color: var(--text);
+        }
+        .settings-uid {
+            font-family: var(--font-mono); font-size: 0.65rem;
+            color: var(--muted); margin-top: 3px;
+        }
+        /* Modal overlay for rules/policy */
+        .settings-modal-overlay {
+            position: fixed; inset: 0; z-index: 99998;
+            background: rgba(0,0,0,0.8);
+            display: none; align-items: flex-end; justify-content: center;
+        }
+        .settings-modal-overlay.show { display: flex; }
+        .settings-modal-sheet {
+            width: 100%; max-width: 480px;
+            background: linear-gradient(160deg,rgba(14,6,28,0.99),rgba(8,3,18,0.99));
+            border-radius: 24px 24px 0 0;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px 44px;
+            max-height: 88vh; overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.36s cubic-bezier(0.32,0.72,0,1);
+        }
+        .settings-modal-overlay.show .settings-modal-sheet { transform: translateY(0); }
+        .settings-modal-handle {
+            width: 40px; height: 4px; border-radius: 99px;
+            background: rgba(255,255,255,0.12); margin: 10px auto 20px;
+        }
+        .settings-modal-title {
+            font-family: var(--font-display); font-size: 1rem;
+            font-weight: 800; color: #fff; margin-bottom: 16px;
+        }
+        .settings-modal-body {
+            font-size: 0.82rem; color: rgba(255,255,255,0.5);
+            line-height: 1.8;
+        }
+        .settings-modal-body h3 {
+            font-family: var(--font-display); font-size: 0.72rem;
+            color: var(--cyan); margin: 18px 0 6px; letter-spacing: 1px;
+        }
+        .settings-modal-body p { margin-bottom: 10px; }
+
+
+        /* ── ROLE BADGES ── */
+        .role-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 9px; border-radius: 99px;
+            font-family: var(--font-display); font-size: 0.45rem;
+            font-weight: 700; letter-spacing: 1px;
+        }
+        .role-badge.admin   { background:rgba(255,77,166,0.15); color:#ff4da6; border:1px solid rgba(255,77,166,0.35); }
+        .role-badge.winner  { background:rgba(255,184,0,0.12);  color:#ffb800; border:1px solid rgba(255,184,0,0.3); }
+        .role-badge.member  { background:rgba(77,159,255,0.1);  color:#4d9fff; border:1px solid rgba(77,159,255,0.25); }
+        .role-badge.banned  { background:rgba(255,77,77,0.1);   color:#ff4d4d; border:1px solid rgba(255,77,77,0.25); }
+        .role-badge.vip     { background:rgba(0,214,143,0.1);   color:#00d68f; border:1px solid rgba(0,214,143,0.25); }
+
+        /* Role Manager in admin */
+        .role-manager-row {
+            display:flex; align-items:center; gap:10px;
+            padding:11px 12px; border-radius:12px;
+            background:rgba(255,255,255,0.03);
+            border:1px solid rgba(255,255,255,0.06);
+            margin-bottom:7px;
+        }
+        .role-manager-avatar {
+            width:34px; height:34px; border-radius:10px;
+            background:linear-gradient(135deg,#4d9fff,#6a6fff);
+            display:flex; align-items:center; justify-content:center;
+            font-family:var(--font-display); font-weight:900; color:#fff;
+            font-size:0.9rem; flex-shrink:0;
+        }
+        .role-manager-name { font-size:0.82rem; font-weight:700; color:var(--text); flex:1; }
+        .role-select {
+            background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12);
+            color:var(--text); border-radius:8px; padding:5px 8px;
+            font-family:var(--font-mono); font-size:0.65rem; cursor:pointer;
+        }
+
     </style>
 </head>
 <body>
@@ -835,18 +1105,21 @@
   </div>
 </header>
 
-<!-- NOTIFICATION PANEL -->
-<div class="notif-panel" id="notifPanel" onclick="closeNotifPanel(event)">
-  <div class="notif-sheet" onclick="event.stopPropagation()">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
-      <div style="font-family:var(--font-display);font-size:1rem;font-weight:800;letter-spacing:1px;">🔔 NOTIFICATIONS</div>
-      <div style="display:flex;gap:8px;">
-        <button onclick="markAllRead()" style="font-size:0.65rem;padding:5px 10px;border-radius:8px;border:1px solid rgba(77,159,255,0.3);background:transparent;color:var(--cyan);cursor:pointer;font-family:var(--font-display);">MARK ALL READ</button>
-        <button onclick="closeNotifPanel()" style="font-size:1rem;background:none;border:none;color:var(--muted);cursor:pointer;">✕</button>
+<!-- NOTIFICATION OVERLAY (click outside to close) -->
+<div class="notif-overlay" id="notifOverlay" onclick="closeNotifPanel()"></div>
+
+<!-- NOTIFICATION DROPDOWN -->
+<div class="notif-dropdown" id="notifPanel">
+  <div class="notif-dropdown-inner">
+    <div class="notif-header-row">
+      <div class="notif-header-title">🔔 Notifications</div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button class="notif-mark-btn" onclick="event.stopPropagation();markAllRead()">Mark all read</button>
+        <button onclick="closeNotifPanel()" style="background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;font-size:1rem;padding:2px 4px;">✕</button>
       </div>
     </div>
     <div id="notifList">
-      <div style="text-align:center;padding:40px 0;color:var(--muted);font-size:0.82rem;">No notifications yet 🔕</div>
+      <div class="notif-empty">No notifications yet 🔕</div>
     </div>
   </div>
 </div>
@@ -1403,6 +1676,28 @@
         <button class="btn btn-magenta" onclick="unlockAdmin()" style="margin-top:8px;">UNLOCK ADMIN</button>
       </div>
       <div id="adminControls">
+
+        <!-- ROLE MANAGER -->
+        <div style="background:rgba(255,77,166,0.04);border:1px solid rgba(255,77,166,0.18);border-radius:14px;padding:14px;margin-bottom:14px;">
+          <div style="font-family:var(--font-display);font-size:0.55rem;color:#ff4da6;letter-spacing:1.5px;margin-bottom:12px;">👥 ROLE MANAGER</div>
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <input type="text" class="field-input admin-input" id="roleUsername" placeholder="Enter username" style="margin-bottom:0;flex:1;">
+            <select class="role-select" id="roleSelect" style="flex-shrink:0;">
+              <option value="member">👤 Member</option>
+              <option value="admin">🔐 Admin</option>
+              <option value="winner">🏆 Winner</option>
+              <option value="vip">⭐ VIP</option>
+              <option value="banned">🚫 Banned</option>
+            </select>
+          </div>
+          <button class="btn btn-magenta" onclick="adminAssignRole()" style="width:100%;font-size:0.58rem;padding:11px;margin-bottom:10px;">✅ ASSIGN ROLE</button>
+          <div style="font-family:var(--font-display);font-size:0.42rem;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-bottom:8px;">CURRENT ROLES</div>
+          <div id="rolesList" style="max-height:180px;overflow-y:auto;">
+            <div style="text-align:center;color:var(--muted);font-size:0.75rem;padding:12px;">Loading roles...</div>
+          </div>
+        </div>
+        <hr class="divider">
+
         <label class="field-label">Winner ID (for proof upload)</label>
         <input type="text" class="field-input admin-input" id="proofWinnerId" placeholder="Enter winner's Guild ID">
         <input type="file" class="proof-files-input" id="proofImageFiles" accept="image/*" multiple>
@@ -1466,6 +1761,173 @@
     </div>
   </div>
 
+
+  <!-- ═══ SETTINGS TAB ═══ -->
+  <div id="tab-settings" class="tab-content">
+    <div style="padding:0 0 20px;">
+
+      <!-- Profile Card -->
+      <div class="settings-profile-card">
+        <div class="settings-avatar-big" id="settingsAvatar">?</div>
+        <div>
+          <div class="settings-username-big" id="settingsUsername">USER</div>
+          <div class="settings-uid" id="settingsUID">UID···</div>
+          <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;" id="settingsStatsBadges"></div>
+        </div>
+      </div>
+
+      <!-- ACCOUNT -->
+      <div class="settings-section">
+        <div class="settings-section-label">Account</div>
+        <div class="settings-card">
+          <div class="settings-row" onclick="openSettingsModal('changepass')">
+            <div class="settings-row-icon" style="background:rgba(77,159,255,0.1);">🔑</div>
+            <div class="settings-row-body">
+              <div class="settings-row-title">Change Password</div>
+              <div class="settings-row-sub">Update your login password</div>
+            </div>
+            <div class="settings-row-arrow">›</div>
+          </div>
+          <div class="settings-row" onclick="copyMyRefLink()">
+            <div class="settings-row-icon" style="background:rgba(0,214,143,0.1);">🔗</div>
+            <div class="settings-row-body">
+              <div class="settings-row-title">Copy Referral Link</div>
+              <div class="settings-row-sub">Share & earn more entries</div>
+            </div>
+            <div class="settings-row-arrow">📋</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTIFICATIONS -->
+      <div class="settings-section">
+        <div class="settings-section-label">Notifications</div>
+        <div class="settings-card">
+          <div class="settings-row" onclick="event.stopPropagation();requestPushPermission(true)">
+            <div class="settings-row-icon" style="background:rgba(255,184,0,0.1);">🔔</div>
+            <div class="settings-row-body">
+              <div class="settings-row-title">Push Notifications</div>
+              <div class="settings-row-sub" id="settingsNotifStatus">Tap to enable device alerts</div>
+            </div>
+            <button class="settings-toggle" id="settingsNotifToggle" onclick="event.stopPropagation();requestPushPermission(true)"></button>
+          </div>
+          <div class="settings-row" onclick="switchTab('home');setTimeout(()=>openNotifPanel(),200)">
+            <div class="settings-row-icon" style="background:rgba(255,77,166,0.1);">📭</div>
+            <div class="settings-row-body">
+              <div class="settings-row-title">View All Notifications</div>
+              <div class="settings-row-sub">See announcements & alerts</div>
+            </div>
+            <div class="settings-row-arrow">›</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INFO -->
+      <div class="settings-section">
+        <div class="settings-section-label">Information</div>
+        <div class="settings-card">
+          <div class="settings-row" onclick="openSettingsModal('rules')">
+            <div class="settings-row-icon" style="background:rgba(77,159,255,0.1);">📜</div>
+            <div class="settings-row-body">
+              <div class="settings-row-title">Giveaway Rules</div>
+              <div class="settings-row-sub">How the giveaway works</div>
+            </div>
+            <div class="settings-row-arrow">›</div>
+          </div>
+          <div class="settings-row" onclick="openSettingsModal('policy')">
+            <div class="settings-row-icon" style="background:rgba(0,214,143,0.1);">🛡️</div>
+            <div class="settings-row-body">
+              <div class="settings-row-title">Privacy Policy</div>
+              <div class="settings-row-sub">How we handle your data</div>
+            </div>
+            <div class="settings-row-arrow">›</div>
+          </div>
+          <div class="settings-row" onclick="openSettingsModal('howto')">
+            <div class="settings-row-icon" style="background:rgba(255,184,0,0.1);">❓</div>
+            <div class="settings-row-body">
+              <div class="settings-row-title">How to Win</div>
+              <div class="settings-row-sub">Step-by-step guide</div>
+            </div>
+            <div class="settings-row-arrow">›</div>
+          </div>
+          <div class="settings-row" onclick="openSettingsModal('contact')">
+            <div class="settings-row-icon" style="background:rgba(255,77,166,0.1);">💬</div>
+            <div class="settings-row-body">
+              <div class="settings-row-title">Contact & Support</div>
+              <div class="settings-row-sub">Reach out to Kaddu_YT9</div>
+            </div>
+            <div class="settings-row-arrow">›</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABOUT -->
+      <div class="settings-section">
+        <div class="settings-section-label">About</div>
+        <div class="settings-card">
+          <div class="settings-row" onclick="window.open('https://youtube.com/@kaddu_yt9','_blank')">
+            <div class="settings-row-icon" style="background:rgba(255,0,0,0.1);">▶️</div>
+            <div class="settings-row-body">
+              <div class="settings-row-title">YouTube Channel</div>
+              <div class="settings-row-sub">@Kaddu_YT9 — Subscribe now!</div>
+            </div>
+            <div class="settings-row-arrow">↗</div>
+          </div>
+          <div class="settings-row" onclick="openSettingsModal('about')">
+            <div class="settings-row-icon" style="background:rgba(106,111,255,0.1);">🎮</div>
+            <div class="settings-row-body">
+              <div class="settings-row-title">About Guild Glory</div>
+              <div class="settings-row-sub">Version 1.0 — by Kaddu_YT9</div>
+            </div>
+            <div class="settings-row-arrow">›</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADMIN -->
+      <div class="settings-section">
+        <div class="settings-section-label">Developer</div>
+        <div class="settings-card">
+          <div class="settings-row" onclick="switchTab('admin')">
+            <div class="settings-row-icon" style="background:rgba(255,77,166,0.1);">🔐</div>
+            <div class="settings-row-body">
+              <div class="settings-row-title">Admin Panel</div>
+              <div class="settings-row-sub">Password protected — authorized only</div>
+            </div>
+            <div class="settings-row-arrow">›</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOGOUT -->
+      <div class="settings-section" style="margin-top:6px;">
+        <div class="settings-card">
+          <div class="settings-row" onclick="doLogout()" style="justify-content:center;">
+            <div class="settings-row-icon" style="background:rgba(255,77,102,0.1);">🚪</div>
+            <div class="settings-row-body">
+              <div class="settings-row-title" style="color:#ff4d66;">Logout</div>
+              <div class="settings-row-sub">Sign out of your account</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding:20px 0 10px;font-size:0.65rem;color:rgba(255,255,255,0.15);font-family:var(--font-mono);">
+        GUILD GLORY v1.0 · KADDU_YT9
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODALS (bottom sheets) -->
+  <div class="settings-modal-overlay" id="settingsModal" onclick="if(event.target===this)closeSettingsModal()">
+    <div class="settings-modal-sheet" id="settingsModalSheet">
+      <div class="settings-modal-handle"></div>
+      <div class="settings-modal-title" id="settingsModalTitle"></div>
+      <div class="settings-modal-body" id="settingsModalBody"></div>
+    </div>
+  </div>
+
+
 </div><!-- end content-area -->
 
 <!-- BOTTOM NAV -->
@@ -1484,6 +1946,9 @@
   </div>
   <div class="nav-item" onclick="switchTab('premium')">
     <div class="nav-icon-wrap">⭐</div><span>Premium</span>
+  </div>
+  <div class="nav-item" onclick="switchTab('settings')">
+    <div class="nav-icon-wrap">⚙️</div><span>Settings</span>
   </div>
 </nav>
 
@@ -1568,6 +2033,10 @@
         document.getElementById('userAvatar').textContent = username[0].toUpperCase();
         document.getElementById('upiIdDisplay').textContent = UPI_ID;
         initState();
+        // Load user role from Firebase (auto-unlocks admin if role=admin)
+        const _loadRole = () => loadCurrentUserRole();
+        if (window._fbReady) setTimeout(_loadRole, 300);
+        else document.addEventListener('fbReady', _loadRole, {once:true});
         // Update share tracker UI
         setTimeout(updateShareUI, 100);
         // Check if this user already submitted a guild ID
@@ -1647,8 +2116,6 @@
         // Global notifications from Firebase
         listenGlobalNotifs();
         updateNotifBadge();
-        // Ask for push permission after small delay (after login)
-        setTimeout(maybePromptNotifPermission, 2000);
     }
 
     function showAlreadySubmittedBadge(guildId) {
@@ -1675,6 +2142,7 @@
 
     // ── NAVIGATION ──
     function switchTab(tabId) {
+        if (tabId === 'settings') updateSettingsUI();
         // 'share' lives inside home tab — scroll to it
         if (tabId === 'share') {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -1695,9 +2163,9 @@
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById('tab-'+tabId).classList.add('active');
-        const navMap = {home:0,tasks:1,leaderboard:2,history:3,premium:4};
+        const navMap = {home:0,tasks:1,leaderboard:2,history:3,premium:4,settings:5,admin:null};
         const navItems = document.querySelectorAll('.nav-item');
-        if (navMap[tabId] !== undefined) navItems[navMap[tabId]].classList.add('active');
+        const navIdx = navMap[tabId]; if (navIdx !== undefined && navIdx !== null) navItems[navIdx].classList.add('active');
     }
 
     // ── PREMIUM NAV ──
@@ -2057,6 +2525,74 @@
     }
 
 
+
+    // ── ADMIN NOTIFICATION BOTTOM SHEET ──
+    const NOTIF_TYPE_ICONS = { info:'ℹ️', winner:'🏆', milestone:'🎯', alert:'🚨', gift:'🎁' };
+    const NOTIF_TYPE_COLORS = {
+        info:   { bg:'rgba(77,159,255,0.12)',  border:'rgba(77,159,255,0.3)',  btn:'linear-gradient(135deg,#4d9fff,#6a6fff)', badge:'rgba(77,159,255,0.15)',  text:'#4d9fff'  },
+        winner: { bg:'rgba(255,184,0,0.08)',   border:'rgba(255,184,0,0.25)',  btn:'linear-gradient(135deg,#ffb800,#ff8c00)', badge:'rgba(255,184,0,0.15)',   text:'#ffb800'  },
+        milestone:{ bg:'rgba(0,214,143,0.07)', border:'rgba(0,214,143,0.22)', btn:'linear-gradient(135deg,#00d68f,#00b87a)', badge:'rgba(0,214,143,0.15)',   text:'#00d68f'  },
+        alert:  { bg:'rgba(255,77,102,0.08)',  border:'rgba(255,77,102,0.25)', btn:'linear-gradient(135deg,#ff4d66,#e0003a)', badge:'rgba(255,77,102,0.15)',  text:'#ff4d66'  },
+        gift:   { bg:'rgba(255,77,166,0.08)',  border:'rgba(255,77,166,0.22)', btn:'linear-gradient(135deg,#ff4da6,#c4006a)', badge:'rgba(255,77,166,0.15)',  text:'#ff4da6'  },
+    };
+
+    function showAdminNotifSheet(notif) {
+        // Remove any existing sheet
+        const existing = document.getElementById('adminNotifSheet');
+        if (existing) existing.remove();
+
+        const type = notif.type || 'info';
+        const colors = NOTIF_TYPE_COLORS[type] || NOTIF_TYPE_COLORS.info;
+        const icon = NOTIF_TYPE_ICONS[type] || 'ℹ️';
+        const typeLabel = type.toUpperCase();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'admin-notif-overlay';
+        overlay.id = 'adminNotifSheet';
+        overlay.innerHTML = `
+            <div class="admin-notif-sheet" style="border-top-color:${colors.border};">
+                <div class="admin-notif-handle"></div>
+                <div class="admin-notif-type-badge" style="background:${colors.badge};color:${colors.text};border:1px solid ${colors.border};">
+                    ${icon} ${typeLabel}
+                </div>
+                <span class="admin-notif-icon-big">${icon}</span>
+                <div class="admin-notif-title">${notif.title || 'Announcement'}</div>
+                <div class="admin-notif-msg">${notif.msg || ''}</div>
+                <button class="admin-notif-dismiss" style="background:${colors.btn};" onclick="closeAdminNotifSheet()">
+                    GOT IT ✓
+                </button>
+            </div>
+        `;
+
+        // Tap backdrop to dismiss
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeAdminNotifSheet();
+        });
+
+        document.body.appendChild(overlay);
+        // Trigger slide-up animation
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => overlay.classList.add('show'));
+        });
+    }
+
+    function closeAdminNotifSheet() {
+        const overlay = document.getElementById('adminNotifSheet');
+        if (!overlay) return;
+        overlay.querySelector('.admin-notif-sheet').style.transform = 'translateY(100%)';
+        overlay.style.background = 'rgba(0,0,0,0)';
+        overlay.style.transition = 'background 0.3s ease';
+        setTimeout(() => overlay.remove(), 380);
+    }
+
+    // Called from loginGlobalNotifs — only triggers sheet for NEW notifications received live
+    function onNewAdminNotif(notif) {
+        // Push to local bell list
+        pushNotif(notif.title, notif.msg, notif.type || 'info');
+        // Show bottom sheet
+        showAdminNotifSheet(notif);
+    }
+
     // ── NOTIFICATIONS ──
     const NOTIF_ICONS = { info:'ℹ️', winner:'🏆', milestone:'🎯', alert:'🚨', gift:'🎁' };
 
@@ -2092,28 +2628,37 @@
         if (!list) return;
         const notifs = getNotifs();
         if (!notifs.length) {
-            list.innerHTML = '<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:0.82rem;">No notifications yet 🔕</div>';
+            list.innerHTML = '<div class="notif-empty">No notifications yet 🔕</div>';
             return;
         }
         list.innerHTML = notifs.map(n => `
-            <div class="notif-item ${n.read ? '' : 'notif-unread'}" onclick="markRead(${n.id})">
-                <div class="notif-icon">${NOTIF_ICONS[n.type] || 'ℹ️'}</div>
-                <div class="notif-body">
-                    <div class="notif-title">${n.title}</div>
-                    <div class="notif-msg">${n.msg}</div>
-                    <div class="notif-time">${n.ts}</div>
+            <div class="notif-item ${n.read ? '' : 'unread'}" onclick="event.stopPropagation();markRead(${n.id})">
+                ${!n.read ? '<div class="notif-unread-dot"></div>' : ''}
+                <div class="notif-item-icon">${NOTIF_ICONS[n.type] || 'ℹ️'}</div>
+                <div class="notif-item-body">
+                    <div class="notif-item-title">${n.title}</div>
+                    <div class="notif-item-msg">${n.msg}</div>
+                    <div class="notif-item-time">${n.ts}</div>
                 </div>
             </div>
         `).join('');
     }
 
     function openNotifPanel() {
-        document.getElementById('notifPanel').classList.add('show');
+        const panel = document.getElementById('notifPanel');
+        const overlay = document.getElementById('notifOverlay');
+        const isOpen = panel.classList.contains('open');
+        if (isOpen) {
+            closeNotifPanel(); return;
+        }
+        panel.classList.add('open');
+        if (overlay) overlay.classList.add('open');
         renderNotifList();
     }
     function closeNotifPanel(e) {
-        if (!e || e.target === document.getElementById('notifPanel'))
-            document.getElementById('notifPanel').classList.remove('show');
+        document.getElementById('notifPanel').classList.remove('open');
+        const overlay = document.getElementById('notifOverlay');
+        if (overlay) overlay.classList.remove('open');
     }
     function markRead(id) {
         const notifs = getNotifs();
@@ -2121,8 +2666,26 @@
         if (n) { n.read = true; saveNotifs(notifs); updateNotifBadge(); renderNotifList(); }
     }
     function markAllRead() {
-        const notifs = getNotifs().map(n => ({...n, read: true}));
-        saveNotifs(notifs); updateNotifBadge(); renderNotifList();
+        try {
+            const notifs = getNotifs();
+            if (!notifs.length) return;
+            notifs.forEach(n => { n.read = true; });
+            saveNotifs(notifs);
+            updateNotifBadge();
+            renderNotifList();
+            // Visual feedback on button
+            const btn = document.querySelector('.notif-mark-btn');
+            if (btn) {
+                btn.textContent = '✓ All read';
+                btn.style.color = 'var(--green)';
+                btn.style.borderColor = 'rgba(0,214,143,0.4)';
+                setTimeout(() => {
+                    btn.textContent = 'Mark all read';
+                    btn.style.color = '';
+                    btn.style.borderColor = '';
+                }, 2000);
+            }
+        } catch(e) { console.error('markAllRead error:', e); }
     }
 
     // Firebase-based global notifications (admin sends → all users see)
@@ -2148,16 +2711,26 @@
         const { db, ref, onValue } = window._fb;
         const seenKey = 'gg_seen_notifs';
         let seen = new Set(JSON.parse(localStorage.getItem(seenKey) || '[]'));
+        let isFirstLoad = true;
         onValue(ref(db, 'notifications'), snap => {
-            if (!snap.exists()) return;
+            if (!snap.exists()) { isFirstLoad = false; return; }
             const all = snap.val();
+            const newOnes = [];
             Object.entries(all).forEach(([key, n]) => {
                 if (!seen.has(key)) {
                     seen.add(key);
-                    pushNotif(n.title, n.msg, n.type || 'info');
+                    newOnes.push(n);
                 }
             });
             localStorage.setItem(seenKey, JSON.stringify([...seen]));
+            if (isFirstLoad) {
+                // On first load: silently add to bell list only, no popup
+                newOnes.forEach(n => pushNotif(n.title, n.msg, n.type || 'info'));
+                isFirstLoad = false;
+            } else {
+                // Live new notification from admin: show bottom sheet
+                newOnes.forEach(n => onNewAdminNotif(n));
+            }
         });
     }
 
@@ -2301,11 +2874,352 @@
 
     // pushNotif override removed — sendBrowserNotif called inside original
 
+
+
+    // ── ROLE SYSTEM ──
+    const ROLE_META = {
+        admin:  { icon:'🔐', label:'Admin',  cls:'admin'  },
+        winner: { icon:'🏆', label:'Winner', cls:'winner' },
+        vip:    { icon:'⭐', label:'VIP',    cls:'vip'    },
+        member: { icon:'👤', label:'Member', cls:'member' },
+        banned: { icon:'🚫', label:'Banned', cls:'banned' },
+    };
+
+    // Current user's role (loaded on login)
+    let currentUserRole = 'member';
+
+    // ── Fetch role for a user from Firebase ──
+    async function fetchUserRole(username) {
+        try {
+            const { db, ref, get } = window._fb;
+            const snap = await get(ref(db, 'roles/' + username));
+            if (snap.exists()) return snap.val().role || 'member';
+        } catch(e) {}
+        return 'member';
+    }
+
+    // ── Set role in Firebase ──
+    async function setUserRole(username, role) {
+        const { db, ref, set } = window._fb;
+        await set(ref(db, 'roles/' + username), { role, updatedAt: Date.now() });
+    }
+
+    // ── Admin: assign role from panel ──
+    async function adminAssignRole() {
+        const username = document.getElementById('roleUsername').value.trim();
+        const role = document.getElementById('roleSelect').value;
+        if (!username) { showToast('⚠ Enter a username', '#ff4d6a', '#fff'); return; }
+        try {
+            await setUserRole(username, role);
+            showToast('✅ Role set: ' + username + ' → ' + role, '#00d68f', '#000');
+            document.getElementById('roleUsername').value = '';
+            loadRolesList();
+            // If assigning admin, notify via Firebase notification
+            if (role === 'admin') {
+                const { db, ref, push } = window._fb;
+                await push(ref(db, 'notifications'), {
+                    title: '🔐 New Admin Assigned',
+                    msg: username + ' has been granted Admin access.',
+                    type: 'alert', ts: Date.now()
+                });
+            }
+        } catch(e) {
+            showToast('❌ Error: ' + e.message, '#ff4d6a', '#fff');
+        }
+    }
+
+    // ── Load all roles into the role list panel ──
+    async function loadRolesList() {
+        const list = document.getElementById('rolesList');
+        if (!list) return;
+        list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:0.75rem;padding:12px;">Loading...</div>';
+        try {
+            const { db, ref, get } = window._fb;
+            const snap = await get(ref(db, 'roles'));
+            if (!snap.exists()) {
+                list.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:0.75rem;padding:12px;">No roles assigned yet</div>';
+                return;
+            }
+            const roles = snap.val();
+            list.innerHTML = Object.entries(roles).map(([uname, data]) => {
+                const r = data.role || 'member';
+                const meta = ROLE_META[r] || ROLE_META.member;
+                return `
+                <div class="role-manager-row">
+                    <div class="role-manager-avatar">${uname[0].toUpperCase()}</div>
+                    <div class="role-manager-name">${uname}</div>
+                    <span class="role-badge ${meta.cls}">${meta.icon} ${meta.label}</span>
+                    <button onclick="quickRemoveRole('${uname}')" style="background:none;border:none;color:rgba(255,77,77,0.6);cursor:pointer;font-size:0.9rem;padding:2px 4px;">✕</button>
+                </div>`;
+            }).join('');
+        } catch(e) {
+            list.innerHTML = '<div style="color:#ff4d6a;font-size:0.75rem;padding:8px;">Error loading roles</div>';
+        }
+    }
+
+    async function quickRemoveRole(username) {
+        if (!confirm('Remove role for ' + username + '? They will become Member.')) return;
+        await setUserRole(username, 'member');
+        showToast('🗑 Role removed for ' + username, '#ff6b35', '#000');
+        loadRolesList();
+    }
+
+    // ── Load current user's role on login ──
+    async function loadCurrentUserRole() {
+        const u = getCurrentUser();
+        if (!u || !window._fbReady) return;
+        currentUserRole = await fetchUserRole(u);
+
+        // If admin role → auto-unlock admin panel
+        if (currentUserRole === 'admin') {
+            const ctrl = document.getElementById('adminControls');
+            const grp  = document.getElementById('adminPassGroup');
+            if (ctrl) ctrl.style.display = 'block';
+            if (grp)  grp.style.display  = 'none';
+            loadRolesList();
+        }
+
+        // If banned → force logout
+        if (currentUserRole === 'banned') {
+            showToast('🚫 Your account has been banned.', '#ff4d4d', '#fff');
+            setTimeout(() => {
+                localStorage.removeItem('gg_currentUser');
+                location.reload();
+            }, 2500);
+            return;
+        }
+
+        // Update UI badges everywhere
+        updateRoleBadgeUI();
+    }
+
+    function updateRoleBadgeUI() {
+        const meta = ROLE_META[currentUserRole] || ROLE_META.member;
+        const badgeHTML = `<span class="role-badge ${meta.cls}">${meta.icon} ${meta.label}</span>`;
+
+        // Header chip
+        const chip = document.getElementById('userChipName');
+        if (chip) {
+            chip.innerHTML = getCurrentUser().toUpperCase() +
+                (currentUserRole !== 'member' ? ' <span style="font-size:0.7rem;">' + meta.icon + '</span>' : '');
+        }
+
+        // Settings profile badges
+        const badges = document.getElementById('settingsStatsBadges');
+        if (badges) {
+            // Prepend role badge to existing badges
+            const existing = badges.innerHTML;
+            if (!badges.querySelector('.role-badge')) {
+                badges.innerHTML = badgeHTML + existing;
+            }
+        }
+    }
+
+
+    // ── SETTINGS ──
+    const SETTINGS_CONTENT = {
+        rules: {
+            title: '📜 Giveaway Rules',
+            body: `
+                <h3>WHO CAN JOIN</h3>
+                <p>Any subscriber of <b style="color:#fff;">@Kaddu_YT9</b> can participate. You must have a valid Free Fire Guild ID.</p>
+                <h3>HOW TO ENTER</h3>
+                <p>1. Subscribe to the YouTube channel.<br>
+                2. Complete all required tasks (YouTube, Instagram, WhatsApp, Telegram, EarnBox).<br>
+                3. Refer <b style="color:#fff;">5 friends</b> via your referral link — they must subscribe.<br>
+                4. Submit your Guild ID to enter the lucky wheel.</p>
+                <h3>HOW WINNERS ARE PICKED</h3>
+                <p>When the subscriber milestone is reached, the lucky wheel spins automatically. One Guild ID is randomly selected as the winner.</p>
+                <h3>PRIZES</h3>
+                <p>Prizes are diamonds, top-ups, or in-game items as announced per milestone. Prizes are non-transferable and non-refundable.</p>
+                <h3>DISQUALIFICATION</h3>
+                <p>Fake accounts, bots, or cheating of any kind will result in permanent disqualification. Only one entry per user is allowed.</p>
+                <h3>PROOF REQUIRED</h3>
+                <p>Winners must respond within 48 hours with their in-game details. Unclaimed prizes are forfeited.</p>
+            `
+        },
+        policy: {
+            title: '🛡️ Privacy Policy',
+            body: `
+                <h3>INFORMATION WE COLLECT</h3>
+                <p>We collect your username, Guild ID, and server information to run the giveaway. We do not collect passwords in plaintext — they are stored encoded.</p>
+                <h3>HOW WE USE YOUR DATA</h3>
+                <p>Your information is used only for operating the giveaway and communicating results. Guild IDs are visible to other users on the leaderboard.</p>
+                <h3>DATA STORAGE</h3>
+                <p>Account data is stored locally in your browser. Giveaway entries and winner data are stored in a secure Firebase database.</p>
+                <h3>THIRD PARTY</h3>
+                <p>We use YouTube API for subscriber counts, Telegram API for notifications, and Firebase for real-time data. We do not sell your data to any third party.</p>
+                <h3>YOUR RIGHTS</h3>
+                <p>You can delete your account by logging out and requesting a reset. Contact us via Telegram for data removal requests.</p>
+                <h3>CHANGES</h3>
+                <p>Rules and policies may be updated at any time. Continued use of the platform means you accept the latest version.</p>
+            `
+        },
+        howto: {
+            title: '❓ How to Win',
+            body: `
+                <h3>STEP 1 — SUBSCRIBE</h3>
+                <p>Subscribe to <b style="color:#fff;">@Kaddu_YT9</b> on YouTube. This is mandatory to be eligible.</p>
+                <h3>STEP 2 — REGISTER</h3>
+                <p>Create an account on this website and log in.</p>
+                <h3>STEP 3 — COMPLETE TASKS</h3>
+                <p>Go to the <b style="color:#fff;">Tasks</b> tab and complete all 5 tasks: YouTube subscribe, Instagram follow, join WhatsApp group, join Telegram channel, and EarnBox sign up.</p>
+                <h3>STEP 4 — REFER 5 FRIENDS</h3>
+                <p>Go to <b style="color:#fff;">Home → Share Tracker</b>. Share your referral link and get 5 people to subscribe using your link. This unlocks Guild ID submission.</p>
+                <h3>STEP 5 — SUBMIT GUILD ID</h3>
+                <p>Enter your Free Fire Guild ID and select your server. Your Guild ID is now in the lucky wheel! 🎡</p>
+                <h3>STEP 6 — WAIT FOR MILESTONE</h3>
+                <p>When the subscriber count hits the next milestone, the wheel spins. If your Guild ID is chosen — you WIN! 🏆</p>
+                <h3>TIPS</h3>
+                <p>• Refer more friends to increase community momentum.<br>
+                • Check the <b style="color:#fff;">Leaderboard</b> to see if your entry is registered.<br>
+                • Stay active for special bonus rounds.</p>
+            `
+        },
+        contact: {
+            title: '💬 Contact & Support',
+            body: `
+                <h3>YOUTUBE</h3>
+                <p><a href="https://youtube.com/@kaddu_yt9" target="_blank" style="color:#4d9fff;">@Kaddu_YT9</a> — Subscribe and comment on latest video for fastest response.</p>
+                <h3>TELEGRAM</h3>
+                <p>Join our Telegram channel for live updates, winner announcements, and support.</p>
+                <h3>INSTAGRAM</h3>
+                <p>Follow on Instagram for behind-the-scenes and giveaway previews.</p>
+                <h3>REPORT AN ISSUE</h3>
+                <p>If you face any bug or issue with the website, comment on the latest YouTube video with <b style="color:#fff;">#GuildGloryBug</b> and describe your issue.</p>
+                <h3>PRIZE CLAIMS</h3>
+                <p>If you are a winner and have not been contacted within 48 hours, reach out directly on Telegram with your Guild ID and winning screenshot.</p>
+            `
+        },
+        about: {
+            title: '🎮 About Guild Glory',
+            body: `
+                <h3>WHAT IS GUILD GLORY?</h3>
+                <p>Guild Glory is a Free Fire giveaway platform run by <b style="color:#fff;">Kaddu_YT9</b>. Milestone-based lucky wheel spins reward loyal subscribers with in-game prizes.</p>
+                <h3>HOW IT WORKS</h3>
+                <p>Every time the YouTube channel hits a subscriber milestone, the lucky wheel spins and one Guild ID is picked as the winner. The more milestones, the more winners!</p>
+                <h3>BUILT WITH</h3>
+                <p>HTML · CSS · JavaScript · Firebase Realtime Database · YouTube Data API · Telegram Bot API</p>
+                <h3>VERSION</h3>
+                <p>Guild Glory v1.0 — Developed exclusively for @Kaddu_YT9</p>
+            `
+        },
+        changepass: {
+            title: '🔑 Change Password',
+            body: `
+                <div style="margin-top:8px;">
+                    <label style="font-family:var(--font-display);font-size:0.5rem;color:rgba(255,255,255,0.4);letter-spacing:1px;display:block;margin-bottom:6px;">CURRENT PASSWORD</label>
+                    <input type="password" id="cpOld" class="field-input" placeholder="Enter current password" style="margin-bottom:12px;">
+                    <label style="font-family:var(--font-display);font-size:0.5rem;color:rgba(255,255,255,0.4);letter-spacing:1px;display:block;margin-bottom:6px;">NEW PASSWORD</label>
+                    <input type="password" id="cpNew" class="field-input" placeholder="Enter new password (min 4 chars)" style="margin-bottom:12px;">
+                    <label style="font-family:var(--font-display);font-size:0.5rem;color:rgba(255,255,255,0.4);letter-spacing:1px;display:block;margin-bottom:6px;">CONFIRM NEW PASSWORD</label>
+                    <input type="password" id="cpNew2" class="field-input" placeholder="Confirm new password" style="margin-bottom:16px;">
+                    <button onclick="doChangePassword()" style="width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,#4d9fff,#6a6fff);color:#fff;font-family:var(--font-display);font-size:0.6rem;font-weight:700;letter-spacing:1px;cursor:pointer;">UPDATE PASSWORD</button>
+                    <div id="cpError" style="font-size:0.75rem;color:#ff4d6a;text-align:center;margin-top:10px;display:none;"></div>
+                </div>
+            `
+        }
+    };
+
+    function openSettingsModal(key) {
+        const data = SETTINGS_CONTENT[key];
+        if (!data) return;
+        document.getElementById('settingsModalTitle').innerHTML = data.title;
+        document.getElementById('settingsModalBody').innerHTML = data.body;
+        const overlay = document.getElementById('settingsModal');
+        overlay.classList.add('show');
+    }
+
+    function closeSettingsModal() {
+        const overlay = document.getElementById('settingsModal');
+        const sheet = document.getElementById('settingsModalSheet');
+        sheet.style.transform = 'translateY(100%)';
+        setTimeout(() => {
+            overlay.classList.remove('show');
+            sheet.style.transform = '';
+        }, 360);
+    }
+
+    function doChangePassword() {
+        const oldP = document.getElementById('cpOld').value;
+        const newP = document.getElementById('cpNew').value;
+        const newP2 = document.getElementById('cpNew2').value;
+        const errEl = document.getElementById('cpError');
+        const showErr = (msg) => { errEl.textContent = msg; errEl.style.display = 'block'; };
+        errEl.style.display = 'none';
+        if (!oldP || !newP || !newP2) return showErr('⚠ Fill in all fields');
+        if (newP.length < 4) return showErr('⚠ New password must be 4+ characters');
+        if (newP !== newP2) return showErr('❌ Passwords do not match');
+        const users = getUsers();
+        const u = getCurrentUser();
+        if (!users[u] || users[u].pass !== btoa(oldP)) return showErr('❌ Current password is wrong');
+        users[u].pass = btoa(newP);
+        saveUsers(users);
+        closeSettingsModal();
+        showToast('✅ Password updated!', '#00d68f', '#000');
+    }
+
+    function copyMyRefLink() {
+        const u = getCurrentUser();
+        if (!u) return;
+        const link = 'https://youtube.com/@kaddu_yt9?ref=' + encodeURIComponent(u);
+        navigator.clipboard.writeText(link).then(() => {
+            showToast('📋 Referral link copied!', '#00d68f', '#000');
+        }).catch(() => showToast('⚠ Copy failed', '#ff4d6a', '#fff'));
+    }
+
+    function updateSettingsUI() {
+        const u = getCurrentUser();
+        if (!u) return;
+        // Avatar & name
+        const avatar = document.getElementById('settingsAvatar');
+        const uname = document.getElementById('settingsUsername');
+        const uid = document.getElementById('settingsUID');
+        if (avatar) avatar.textContent = u[0].toUpperCase();
+        if (uname) uname.textContent = u.toUpperCase();
+        // Get UID from users
+        const users = getUsers();
+        if (uid && users[u]) uid.textContent = users[u].id || 'UID···';
+        // Stats badges
+        const badges = document.getElementById('settingsStatsBadges');
+        if (badges) {
+            const refD = getRefData();
+            const subs = JSON.parse(localStorage.getItem('savedUserSubmissions') || '{}');
+            const hasEntry = !!subs[u];
+            badges.innerHTML = `
+                <span style="font-size:0.6rem;padding:3px 8px;border-radius:99px;background:rgba(77,159,255,0.12);color:#4d9fff;border:1px solid rgba(77,159,255,0.25);">
+                    🔗 ${refD.joins || 0} referrals
+                </span>
+                <span style="font-size:0.6rem;padding:3px 8px;border-radius:99px;background:${hasEntry ? 'rgba(0,214,143,0.12)' : 'rgba(255,255,255,0.06)'};color:${hasEntry ? '#00d68f' : 'rgba(255,255,255,0.3)'};border:1px solid ${hasEntry ? 'rgba(0,214,143,0.25)' : 'rgba(255,255,255,0.08)'};">
+                    ${hasEntry ? '✅ Entry submitted' : '⏳ No entry yet'}
+                </span>
+            `;
+        }
+        // Notif toggle
+        updateSettingsNotifToggle();
+    }
+
+    function updateSettingsNotifToggle() {
+        const toggle = document.getElementById('settingsNotifToggle');
+        const status = document.getElementById('settingsNotifStatus');
+        if (!toggle) return;
+        if (!('Notification' in window)) {
+            if (status) status.textContent = 'Not supported on this browser';
+            toggle.style.opacity = '0.4';
+            return;
+        }
+        const granted = Notification.permission === 'granted';
+        toggle.classList.toggle('on', granted);
+        if (status) status.textContent = granted ? 'Device notifications are ON' : Notification.permission === 'denied' ? 'Blocked — enable in browser settings' : 'Tap to enable device alerts';
+    }
+
+
     // ── ADMIN ──
     function unlockAdmin() {
         if (document.getElementById('adminPassInput').value===ADMIN_PASSWORD) {
             document.getElementById('adminControls').style.display='block';
             document.getElementById('adminPassGroup').style.display='none';
+            loadRolesList();
         } else showToast('❌ Incorrect Passcode!','#ff4da6','#fff');
     }
     function forceSpinDev() {
