@@ -1756,7 +1756,26 @@
         <input type="file" class="proof-files-input" id="proofImageFiles" accept="image/*" multiple>
         <button class="btn btn-cyan" onclick="uploadProof()">Attach Proof Photos</button>
         <hr class="divider">
-        <button class="btn btn-ghost" onclick="forceSpinDev()" style="margin-bottom:10px;">[DEV] Force Milestone Spin</button>
+
+        <!-- MANUAL SPIN / WINNER PICKER -->
+        <div style="background:rgba(255,184,0,0.04);border:1px solid rgba(255,184,0,0.2);border-radius:14px;padding:14px;margin-bottom:14px;">
+          <div style="font-family:var(--font-display);font-size:0.55rem;color:var(--gold);letter-spacing:1.5px;margin-bottom:12px;">🎡 MANUAL WINNER SPIN</div>
+
+          <!-- Random spin -->
+          <button class="btn btn-gold" onclick="adminSpinWheel()" style="margin-bottom:10px;font-size:0.58rem;">🎡 SPIN THE WHEEL (RANDOM)</button>
+
+          <!-- Manual winner pick -->
+          <div style="font-family:var(--font-display);font-size:0.42rem;color:rgba(255,255,255,0.3);letter-spacing:1px;margin-bottom:6px;">— OR PICK WINNER MANUALLY —</div>
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <input type="text" class="field-input admin-input" id="manualWinnerId" placeholder="Enter Guild ID" style="margin-bottom:0;flex:1;">
+            <button onclick="adminPickWinner()" style="padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(135deg,#ffb800,#ff6b35);color:#000;font-family:var(--font-display);font-size:0.5rem;font-weight:700;cursor:pointer;flex-shrink:0;">👑 SET WINNER</button>
+          </div>
+
+          <!-- Current entries count -->
+          <div id="adminEntriesCount" style="font-size:0.72rem;color:var(--muted);text-align:center;padding:6px;"></div>
+        </div>
+
+        <hr class="divider">
         <!-- PREMIUM ORDERS MANAGER -->
         <div style="background:rgba(255,184,0,0.04);border:1px solid rgba(255,184,0,0.2);border-radius:14px;padding:14px;margin-bottom:14px;">
           <div style="font-family:var(--font-display);font-size:0.55rem;color:var(--gold);letter-spacing:1.5px;margin-bottom:12px;">💎 PREMIUM ORDERS</div>
@@ -3248,6 +3267,8 @@
             if (ctrl) ctrl.style.display = 'block';
             if (grp)  grp.style.display  = 'none';
             loadRolesList();
+            loadAdminOrders('pending');
+            updateAdminEntriesCount();
         }
 
         // If banned → force logout
@@ -3492,14 +3513,51 @@
             document.getElementById('adminPassGroup').style.display='none';
             loadRolesList();
             loadAdminOrders('pending');
+            updateAdminEntriesCount();
         } else showToast('❌ Incorrect Passcode!','#ff4da6','#fff');
     }
-    function forceSpinDev() {
-        if (guildIds.length===0) { showToast('⚠ Leaderboard is empty!','#ff6b35','#000'); return; }
+    // ── ADMIN SPIN FUNCTIONS ──
+
+    function adminSpinWheel() {
+        if (guildIds.length === 0) {
+            showToast('⚠ No entries on the wheel yet!', '#ff6b35', '#000');
+            return;
+        }
+        if (!confirm('🎡 Spin the wheel randomly?\n\n' + guildIds.length + ' entries in the pool.')) return;
+        // Switch to home to show wheel animation
         switchTab('home');
-        document.getElementById('winnerAnnounce').innerText="🚨 MANUAL OVERRIDE SPIN 🚨";
-        spinWheel();
+        document.getElementById('winnerAnnounce').innerText = '🚨 ADMIN SPIN IN PROGRESS 🚨';
+        setTimeout(() => spinWheel(), 400);
     }
+
+    async function adminPickWinner() {
+        const guildId = document.getElementById('manualWinnerId').value.trim();
+        if (!guildId) { showToast('⚠ Enter a Guild ID!', '#ff6b35', '#000'); return; }
+        if (!confirm('👑 Set "' + guildId + '" as the winner?\n\nThis will:\n• Record them as winner\n• Remove them from the wheel\n• Notify ALL users')) return;
+
+        try {
+            // Add winner to Firebase
+            await addWinner(guildId);
+            document.getElementById('manualWinnerId').value = '';
+            showToast('👑 Winner set: ' + guildId, '#ffb800', '#000');
+            // Switch to home to show announcement
+            switchTab('home');
+            document.getElementById('winnerAnnounce').innerHTML = '👑 WINNER: ' + guildId + ' 👑';
+        } catch(e) {
+            showToast('❌ Error: ' + e.message, '#ff4d6a', '#fff');
+        }
+    }
+
+    function updateAdminEntriesCount() {
+        const el = document.getElementById('adminEntriesCount');
+        if (!el) return;
+        el.textContent = guildIds.length > 0
+            ? '🎡 ' + guildIds.length + ' entr' + (guildIds.length===1?'y':'ies') + ' currently on the wheel'
+            : '⚠ Wheel is empty — no entries yet';
+    }
+
+    // Keep old forceSpinDev as alias
+    function forceSpinDev() { adminSpinWheel(); }
 
     async function compressImage(file) {
         return new Promise((res,rej)=>{
@@ -3619,12 +3677,12 @@
         await fbRemoveEntry(id);
         // local arrays will update via listeners automatically
         sendWinnerToTelegram(id);
-        // Push notification to all users (stored in Firebase)
+        // Push notification to ALL users (stored in global Firebase notifications)
         try {
             const { db, ref, push } = window._fb;
             await push(ref(db, 'notifications'), {
-                title: '🏆 Milestone Winner!',
-                msg: 'Guild ID ' + id + ' has won the giveaway at ' + currentSubs.toLocaleString() + ' subscribers! 🎉 Congratulations!',
+                title: '🏆 WINNER ANNOUNCED!',
+                msg: '🎉 Guild ID ' + id + ' has WON the Guild Glory Giveaway! Congratulations! 🥳 Check the History tab for details.',
                 type: 'winner',
                 ts: Date.now()
             });
