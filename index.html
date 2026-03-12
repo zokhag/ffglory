@@ -1018,6 +1018,42 @@
             font-family:var(--font-mono); font-size:0.65rem; cursor:pointer;
         }
 
+
+        /* ── ORDER CARDS ── */
+        .order-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px; padding: 14px;
+            margin-bottom: 8px;
+        }
+        .order-card.pending  { border-color: rgba(255,184,0,0.25); }
+        .order-card.complete { border-color: rgba(0,214,143,0.25); }
+        .order-status-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 10px; border-radius: 99px;
+            font-family: var(--font-display); font-size: 0.44rem;
+            font-weight: 700; letter-spacing: 1px;
+        }
+        .order-status-badge.pending  { background:rgba(255,184,0,0.12);  color:#ffb800; border:1px solid rgba(255,184,0,0.3); }
+        .order-status-badge.complete { background:rgba(0,214,143,0.12);  color:#00d68f; border:1px solid rgba(0,214,143,0.3); }
+        .order-detail-row {
+            display: flex; justify-content: space-between;
+            font-size: 0.75rem; color: var(--muted);
+            padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .order-detail-row:last-child { border-bottom: none; }
+        .order-detail-val { color: var(--text); font-weight: 600; text-align:right; }
+        .order-proof-img {
+            width: 100%; border-radius: 8px; margin-top: 8px;
+            border: 1px solid rgba(255,255,255,0.1); max-height: 180px; object-fit: cover;
+            cursor: pointer;
+        }
+        .admin-order-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,184,0,0.15);
+            border-radius: 12px; padding: 12px; margin-bottom: 8px;
+        }
+
     </style>
 </head>
 <body>
@@ -1632,6 +1668,8 @@
           <div style="font-family:var(--font-display);font-size:0.48rem;color:var(--purple);letter-spacing:1px;margin-bottom:6px;">YOUR ORDER SUMMARY</div>
           <div id="premOrderSummary" style="font-size:0.85rem;color:var(--muted);line-height:1.8;">—</div>
         </div>
+        <label class="field-label">WhatsApp Number</label>
+        <input type="tel" class="field-input" id="premWhatsapp" placeholder="e.g. +91 98765 43210" style="margin-bottom:12px;" maxlength="15">
         <label class="field-label">UTR / Transaction ID</label>
         <input type="text" class="field-input" id="utrInput" placeholder="e.g. 423812381928" style="margin-bottom:12px;">
         <label class="field-label">Screenshot (optional)</label>
@@ -1650,17 +1688,26 @@
       </div>
     </div>
 
-    <!-- SECTION: STATUS -->
+    <!-- SECTION: STATUS — My Orders -->
     <div class="premium-section" id="psec-status">
-      <div class="card card-glow-orange">
+      <div class="card card-glow-orange" style="margin-bottom:12px;">
         <div class="sec-header">
-          <div class="sec-icon orange">📊</div>
-          <div class="sec-title orange">Submission Status</div>
+          <div class="sec-icon orange">📦</div>
+          <div class="sec-title orange">My Orders</div>
         </div>
-        <div id="premStatusContent" style="text-align:center;padding:20px;">
-          <div style="font-size:2.5rem;margin-bottom:10px;">⏳</div>
-          <div style="font-family:var(--font-display);font-size:0.6rem;color:var(--orange);letter-spacing: 0.3px;margin-bottom:8px;">AWAITING SUBMISSION</div>
-          <p style="font-size:0.82rem;color:var(--muted);">Submit your UTR to see status here</p>
+        <div id="myOrdersList">
+          <div style="text-align:center;padding:20px;color:var(--muted);font-size:0.82rem;">Loading your orders...</div>
+        </div>
+      </div>
+
+      <!-- ALL ORDERS — public history -->
+      <div class="card" style="border:1px solid rgba(255,255,255,0.07);">
+        <div class="sec-header">
+          <div class="sec-icon" style="background:rgba(255,255,255,0.05);">🌐</div>
+          <div class="sec-title" style="color:rgba(255,255,255,0.7);">Community Orders</div>
+        </div>
+        <div id="allOrdersList">
+          <div style="text-align:center;padding:20px;color:var(--muted);font-size:0.82rem;">Loading...</div>
         </div>
       </div>
     </div>
@@ -1707,6 +1754,20 @@
         <button class="btn btn-cyan" onclick="uploadProof()">Attach Proof Photos</button>
         <hr class="divider">
         <button class="btn btn-ghost" onclick="forceSpinDev()" style="margin-bottom:10px;">[DEV] Force Milestone Spin</button>
+        <!-- PREMIUM ORDERS MANAGER -->
+        <div style="background:rgba(255,184,0,0.04);border:1px solid rgba(255,184,0,0.2);border-radius:14px;padding:14px;margin-bottom:14px;">
+          <div style="font-family:var(--font-display);font-size:0.55rem;color:var(--gold);letter-spacing:1.5px;margin-bottom:12px;">💎 PREMIUM ORDERS</div>
+          <div style="display:flex;gap:6px;margin-bottom:10px;">
+            <button onclick="loadAdminOrders('pending')" id="ordFilterPending" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,184,0,0.4);background:rgba(255,184,0,0.1);color:var(--gold);font-family:var(--font-display);font-size:0.5rem;cursor:pointer;">⏳ PENDING</button>
+            <button onclick="loadAdminOrders('complete')" id="ordFilterComplete" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:var(--muted);font-family:var(--font-display);font-size:0.5rem;cursor:pointer;">✅ COMPLETE</button>
+            <button onclick="loadAdminOrders('all')" id="ordFilterAll" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:transparent;color:var(--muted);font-family:var(--font-display);font-size:0.5rem;cursor:pointer;">📋 ALL</button>
+          </div>
+          <div id="adminOrdersList" style="max-height:340px;overflow-y:auto;">
+            <div style="text-align:center;color:var(--muted);font-size:0.75rem;padding:12px;">Loading orders...</div>
+          </div>
+        </div>
+        <hr class="divider">
+
         <!-- NOTIFICATION COMPOSE -->
         <div class="notif-compose">
           <div style="font-family:var(--font-display);font-size:0.6rem;color:var(--cyan);letter-spacing:1.5px;margin-bottom:12px;">📢 SEND NOTIFICATION TO ALL USERS</div>
@@ -2154,6 +2215,7 @@
     // ── NAVIGATION ──
     function switchTab(tabId) {
         if (tabId === 'settings') updateSettingsUI();
+        if (tabId === 'premium') { setTimeout(() => { loadMyOrders(); loadAllOrders(); }, 300); }
         // 'share' lives inside home tab — scroll to it
         if (tabId === 'share') {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -2257,39 +2319,176 @@
     }
 
     async function submitUTR() {
-        const utr = document.getElementById('utrInput').value.trim();
-        if (!utr) { showToast('⚠ Enter UTR/Transaction ID!', '#ff6b35','#000'); return; }
+        const utr      = document.getElementById('utrInput').value.trim();
+        const whatsapp = document.getElementById('premWhatsapp').value.trim();
+        if (!utr)      { showToast('⚠ Enter UTR/Transaction ID!', '#ff6b35','#000'); return; }
+        if (!whatsapp) { showToast('⚠ Enter your WhatsApp number!', '#ff6b35','#000'); return; }
+        if (!payScreenshotFile) { showToast('⚠ Attach payment screenshot!', '#ff6b35','#000'); return; }
+
         const sending = document.getElementById('utrSending');
-        const status = document.getElementById('utrStatus');
+        const status  = document.getElementById('utrStatus');
         sending.classList.add('show');
-        status.style.display='none'; status.className='eb-status';
-        const msg = `💎 PREMIUM GLORY SLOT REQUEST\n👤 User: ${getCurrentUser()}\n🆔 Guild ID: ${premGuildId||'—'}\n🌐 Server: ${premServer||'—'}\n💰 Plan: ₹${premPlan?premPlan.price:'?'} — ${premPlan?premPlan.tier:'?'}\n🧾 UTR/Txn: ${utr}\n\n⚡ Guild Glory — Kaddu_YT9`;
+        status.style.display='none';
+
+        const user = getCurrentUser();
+        const orderId = 'ORD' + Date.now();
+
         try {
-            let ok = false;
-            if (payScreenshotFile) {
-                const formData = new FormData();
-                formData.append('chat_id', TELEGRAM_CHAT_ID);
-                formData.append('caption', msg);
-                formData.append('photo', payScreenshotFile, 'payment.jpg');
-                const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {method:'POST',body:formData});
-                const d = await res.json(); ok = d.ok;
-            } else {
-                const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(msg)}`);
-                const d = await res.json(); ok = d.ok;
-            }
+            const toBase64 = f => new Promise((res,rej) => { const r = new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(f); });
+            const screenshotB64 = await toBase64(payScreenshotFile);
+
+            const { db, ref, set } = window._fb;
+            const order = {
+                orderId, username: user,
+                guildId: premGuildId || '—', server: premServer || '—',
+                plan: premPlan ? '₹' + premPlan.price + ' — ' + premPlan.tier : '—',
+                price: premPlan ? premPlan.price : '—',
+                whatsapp, utr,
+                userProof: screenshotB64, adminProof: null,
+                status: 'pending', createdAt: Date.now(), confirmedAt: null
+            };
+            await set(ref(db, 'premiumOrders/' + orderId), order);
+
+            const msg = `💎 NEW PREMIUM ORDER\n👤 User: ${user}\n🆔 Guild ID: ${premGuildId||'—'}\n🌐 Server: ${premServer||'—'}\n💰 Plan: ${order.plan}\n🧾 UTR: ${utr}\n📱 WhatsApp: ${whatsapp}\n🆔 Order ID: ${orderId}`;
+            const formData = new FormData();
+            formData.append('chat_id', TELEGRAM_CHAT_ID);
+            formData.append('caption', msg);
+            formData.append('photo', payScreenshotFile, 'payment.jpg');
+            await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`, {method:'POST',body:formData});
+
             sending.classList.remove('show');
-            if (ok) {
-                status.className='eb-status success'; status.textContent='✅ Submitted! Admin will verify within 24h.'; status.style.display='block';
-                document.getElementById('premStatusContent').innerHTML=`<div style="font-size:2.5rem;margin-bottom:10px;">✅</div><div style="font-family:var(--font-display);font-size:0.6rem;color:var(--green);letter-spacing: 0.3px;margin-bottom:8px;">SUBMITTED</div><p style="font-size:0.82rem;color:var(--muted);">UTR: ${utr}<br>Awaiting admin confirmation.</p>`;
-                showToast('✅ UTR Submitted to Admin!','#00d68f','#000');
-            } else throw new Error('API error');
+            status.className='eb-status success'; status.textContent='✅ Order submitted! Admin will confirm within 24h.'; status.style.display='block';
+            showToast('✅ Order Submitted!','#00d68f','#000');
+            setTimeout(() => { const btns=document.querySelectorAll('.pnav-btn'); if(btns[3]) switchPremiumSection('status',btns[3]); }, 800);
+            loadMyOrders(); loadAllOrders();
         } catch(e) {
             sending.classList.remove('show');
-            status.className='eb-status error'; status.textContent='❌ Failed to send. Try again.'; status.style.display='block';
+            status.className='eb-status error'; status.textContent='❌ Failed: ' + e.message; status.style.display='block';
         }
     }
 
-    // ── TASKS ──
+    function renderOrderCard(o, isAdmin) {
+        const isPending = o.status === 'pending';
+        const badge = isPending ? '<span class="order-status-badge pending">⏳ PENDING</span>' : '<span class="order-status-badge complete">✅ COMPLETE</span>';
+        const date = o.createdAt ? new Date(o.createdAt).toLocaleString('en-IN') : '—';
+        const confirmedDate = o.confirmedAt ? new Date(o.confirmedAt).toLocaleString('en-IN') : '—';
+        const userProofImg  = o.userProof  ? `<div style="margin-top:8px;font-family:var(--font-display);font-size:0.42rem;color:var(--muted);letter-spacing:1px;margin-bottom:4px;">PAYMENT PROOF</div><img src="${o.userProof}" class="order-proof-img">` : '';
+        const adminProofImg = o.adminProof ? `<div style="margin-top:8px;font-family:var(--font-display);font-size:0.42rem;color:var(--green);letter-spacing:1px;margin-bottom:4px;">ADMIN PROOF</div><img src="${o.adminProof}" class="order-proof-img">` : '';
+        const adminActions = isAdmin && isPending ? `
+            <div style="margin-top:10px;display:flex;gap:6px;">
+                <div style="flex:1;">
+                    <input type="file" accept="image/*" id="ap_${o.orderId}" style="display:none" onchange="adminAttachProof('${o.orderId}',this)">
+                    <button onclick="document.getElementById('ap_${o.orderId}').click()" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(77,159,255,0.3);background:transparent;color:var(--cyan);font-family:var(--font-display);font-size:0.48rem;cursor:pointer;">📸 ATTACH PROOF</button>
+                    <div id="apPreview_${o.orderId}" style="font-size:0.65rem;color:var(--green);margin-top:4px;display:none;"></div>
+                </div>
+                <button onclick="adminConfirmOrder('${o.orderId}')" style="flex:1;padding:8px;border-radius:8px;border:none;background:linear-gradient(135deg,#00d68f,#00b377);color:#000;font-family:var(--font-display);font-size:0.48rem;font-weight:700;cursor:pointer;">✅ CONFIRM</button>
+            </div>` : '';
+        return `<div class="order-card ${o.status}" data-order="${o.orderId}">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <div style="font-family:var(--font-display);font-size:0.52rem;color:var(--gold);">${isAdmin ? '👤 '+o.username : '🆔 '+o.orderId}</div>${badge}
+            </div>
+            <div class="order-detail-row"><span>Plan</span><span class="order-detail-val">${o.plan||'—'}</span></div>
+            <div class="order-detail-row"><span>Guild ID</span><span class="order-detail-val">${o.guildId||'—'}</span></div>
+            <div class="order-detail-row"><span>Server</span><span class="order-detail-val">${o.server||'—'}</span></div>
+            ${isAdmin?`<div class="order-detail-row"><span>WhatsApp</span><span class="order-detail-val">${o.whatsapp||'—'}</span></div>`:''}
+            ${isAdmin?`<div class="order-detail-row"><span>UTR</span><span class="order-detail-val">${o.utr||'—'}</span></div>`:''}
+            <div class="order-detail-row"><span>Ordered</span><span class="order-detail-val">${date}</span></div>
+            ${!isPending?`<div class="order-detail-row"><span>Confirmed</span><span class="order-detail-val">${confirmedDate}</span></div>`:''}
+            ${userProofImg}${adminProofImg}${adminActions}
+        </div>`;
+    }
+
+    async function loadMyOrders() {
+        const list = document.getElementById('myOrdersList');
+        if (!list || !window._fbReady) return;
+        list.innerHTML = '<div style="text-align:center;padding:14px;color:var(--muted);font-size:0.78rem;">Loading...</div>';
+        try {
+            const { db, ref, get } = window._fb;
+            const snap = await get(ref(db, 'premiumOrders'));
+            if (!snap.exists()) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:0.82rem;">No orders yet 📦</div>'; return; }
+            const u = getCurrentUser();
+            const all = Object.values(snap.val()).filter(o => o.username === u).sort((a,b) => b.createdAt - a.createdAt);
+            if (!all.length) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:0.82rem;">No orders yet 📦</div>'; return; }
+            list.innerHTML = all.map(o => renderOrderCard(o, false)).join('');
+        } catch(e) { list.innerHTML = '<div style="color:#ff4d6a;padding:8px;">Error loading orders</div>'; }
+    }
+
+    async function loadAllOrders() {
+        const list = document.getElementById('allOrdersList');
+        if (!list || !window._fbReady) return;
+        list.innerHTML = '<div style="text-align:center;padding:14px;color:var(--muted);font-size:0.78rem;">Loading...</div>';
+        try {
+            const { db, ref, get } = window._fb;
+            const snap = await get(ref(db, 'premiumOrders'));
+            if (!snap.exists()) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:0.78rem;">No community orders yet</div>'; return; }
+            const all = Object.values(snap.val()).sort((a,b) => b.createdAt - a.createdAt).slice(0,20);
+            list.innerHTML = all.map(o => {
+                const isPending = o.status === 'pending';
+                const badge = isPending ? '<span class="order-status-badge pending">⏳ PENDING</span>' : '<span class="order-status-badge complete">✅ COMPLETE</span>';
+                const date = o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-IN') : '—';
+                return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,rgba(255,184,0,0.2),rgba(255,107,53,0.15));display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">💎</div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:0.8rem;font-weight:700;color:var(--text);">${o.username}</div>
+                        <div style="font-size:0.65rem;color:var(--muted);">${o.plan||'—'} · ${date}</div>
+                    </div>${badge}
+                </div>`;
+            }).join('');
+        } catch(e) { list.innerHTML = '<div style="color:#ff4d6a;padding:8px;">Error</div>'; }
+    }
+
+    let _adminOrderProofs = {};
+    async function loadAdminOrders(filter) {
+        ['pending','complete','all'].forEach(f => {
+            const btn = document.getElementById('ordFilter' + f.charAt(0).toUpperCase() + f.slice(1));
+            if (btn) { const a = f===filter; btn.style.background=a?'rgba(255,184,0,0.1)':'transparent'; btn.style.borderColor=a?'rgba(255,184,0,0.4)':'rgba(255,255,255,0.1)'; btn.style.color=a?'var(--gold)':'var(--muted)'; }
+        });
+        const list = document.getElementById('adminOrdersList');
+        if (!list || !window._fbReady) return;
+        list.innerHTML = '<div style="text-align:center;padding:12px;color:var(--muted);font-size:0.78rem;">Loading...</div>';
+        try {
+            const { db, ref, get } = window._fb;
+            const snap = await get(ref(db, 'premiumOrders'));
+            if (!snap.exists()) { list.innerHTML = '<div style="text-align:center;padding:12px;color:var(--muted);">No orders yet</div>'; return; }
+            let all = Object.values(snap.val()).sort((a,b) => b.createdAt - a.createdAt);
+            if (filter !== 'all') all = all.filter(o => o.status === filter);
+            if (!all.length) { list.innerHTML = '<div style="text-align:center;padding:12px;color:var(--muted);">No ' + filter + ' orders</div>'; return; }
+            list.innerHTML = all.map(o => renderOrderCard(o, true)).join('');
+        } catch(e) { list.innerHTML = '<div style="color:#ff4d6a;padding:8px;">Error: ' + e.message + '</div>'; }
+    }
+
+    function adminAttachProof(orderId, input) {
+        if (!input.files[0]) return;
+        _adminOrderProofs[orderId] = input.files[0];
+        const prev = document.getElementById('apPreview_' + orderId);
+        if (prev) { prev.textContent = '📸 ' + input.files[0].name; prev.style.display = 'block'; }
+    }
+
+    async function adminConfirmOrder(orderId) {
+        if (!confirm('Confirm this order as COMPLETE?')) return;
+        const proofFile = _adminOrderProofs[orderId];
+        try {
+            const { db, ref, get, set, push } = window._fb;
+            const snap = await get(ref(db, 'premiumOrders/' + orderId));
+            if (!snap.exists()) { showToast('❌ Order not found','#ff4d6a','#fff'); return; }
+            const order = snap.val();
+            let adminProofB64 = null;
+            if (proofFile) {
+                adminProofB64 = await new Promise((res,rej) => { const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(proofFile); });
+            }
+            await set(ref(db, 'premiumOrders/' + orderId), { ...order, status:'complete', adminProof:adminProofB64, confirmedAt:Date.now() });
+            await push(ref(db, 'userNotifs/' + order.username), {
+                title: '💎 Premium Order Confirmed!',
+                msg: 'Your order ' + orderId + ' (' + order.plan + ') has been confirmed! Check your Guild Glory inbox.',
+                type: 'winner', ts: Date.now()
+            });
+            showToast('✅ Order confirmed!','#00d68f','#000');
+            delete _adminOrderProofs[orderId];
+            loadAdminOrders('pending');
+        } catch(e) { showToast('❌ Error: ' + e.message,'#ff4d6a','#fff'); }
+    }
+
+    
     function completeTask(platform, url) {
         window.open(url,'_blank');
         tasks[platform] = true;
@@ -2801,42 +3000,17 @@
     }
 
     function copyRefLink() {
-        const link = document.getElementById('myRefLink').textContent;
-        if (!link || link === '—') return;
+        const u = getCurrentUser();
+        if (!u) return;
+        const link = `${window.location.origin}${window.location.pathname}?ref=${encodeURIComponent(u)}`;
         navigator.clipboard.writeText(link).then(() => {
+            showToast('📋 Referral link copied!', '#00d68f', '#000');
             const btn = document.getElementById('copyRefBtn');
-            btn.textContent = '✅ COPIED!';
-            btn.style.color = 'var(--green)';
-            btn.style.borderColor = 'rgba(0,214,143,0.4)';
-            setTimeout(() => { btn.textContent = '📋 COPY'; btn.style.color = ''; btn.style.borderColor = ''; }, 2000);
-        }).catch(() => showToast('⚠ Copy failed — select manually', '#ff4d6a', '#fff'));
+            if (btn) { btn.textContent = '✅ COPIED!'; setTimeout(() => btn.textContent = '📋 COPY', 2000); }
+        }).catch(() => showToast('⚠ Copy failed', '#ff4d6a', '#fff'));
     }
 
-    // ── WEB PUSH NOTIFICATIONS (browser/mobile) ──
-    let _swRegistered = false;
-
-    async function requestPushPermission(fromUserAction) {
-        if (!('Notification' in window)) return;
-        if (Notification.permission === 'granted') {
-            showToast('🔔 Notifications already enabled!', '#00d68f', '#000');
-            return;
-        }
-        if (Notification.permission === 'denied') {
-            showToast('❌ Notifications blocked — enable in browser settings', '#ff4d6a', '#fff');
-            return;
-        }
-        // Must be triggered by user gesture
-        const perm = await Notification.requestPermission();
-        if (perm === 'granted') {
-            showToast('🔔 Notifications enabled! You will get updates.', '#00d68f', '#000');
-            localStorage.setItem('gg_push_enabled', '1');
-            updateNotifPermUI();
-            pushNotif('🔔 Notifications Active', 'You will now receive giveaway alerts, winner announcements, and updates!', 'info');
-        } else {
-            showToast('Notification permission denied', '#ff4d6a', '#fff');
-        }
-    }
-
+    
     function sendBrowserNotif(title, body, icon) {
         if (Notification.permission !== 'granted') return;
         try {
@@ -3262,6 +3436,7 @@
             document.getElementById('adminControls').style.display='block';
             document.getElementById('adminPassGroup').style.display='none';
             loadRolesList();
+            loadAdminOrders('pending');
         } else showToast('❌ Incorrect Passcode!','#ff4da6','#fff');
     }
     function forceSpinDev() {
@@ -3370,7 +3545,7 @@
             ctx.restore();
         }
     }
-    function spinWheel() {
+    async function spinWheel() {
         isSpinning=true;
         const extra=Math.floor(Math.random()*5+6)*360;
         const rand=Math.floor(Math.random()*360);
