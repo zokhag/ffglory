@@ -1,1 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FF Glory Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --fire: #ff4500;
+      --gold: #ffd700;
+      --orange: #ff8c00;
+      --dark: #0a0a0f;
+      --darker: #050508;
+      --card-bg: rgba(255,69,0,0.07);
+      --border: rgba(255,140,0,0.3);
+    }
 
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--darker);
+      color: #f0e6d3;
+      font-family: 'Rajdhani', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(255,69,0,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 90% 80%, rgba(255,200,0,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 30% 30% at 10% 70%, rgba(255,69,0,0.06) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Particle grid */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,140,0,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,140,0,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      text-align: center;
+      padding: 80px 24px 60px;
+      overflow: hidden;
+    }
+
+    .logo-ring {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 24px;
+    }
+
+    .logo-ring::before {
+      content: '';
+      position: absolute;
+      inset: -16px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      border-top-color: var(--fire);
+      border-right-color: var(--gold);
+      animation: spin 3s linear infinite;
+    }
+
+    .logo-ring::after {
+      content: '';
+      position: absolute;
+      inset: -28px;
+      border-radius: 50%;
+      border: 1px solid transparent;
+      border-bottom-color: var(--orange);
+      border-left-color: var(--fire);
+      animation: spin 5s linear infinite reverse;
+    }
+
+    .logo-icon {
+      width: 90px;
+      height: 90px;
+      background: linear-gradient(135deg, var(--fire), var(--gold));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Orbitron', monospace;
+      font-size: 28px;
+      font-weight: 900;
+      color: var(--darker);
+      letter-spacing: -1px;
+      box-shadow: 0 0 40px rgba(255,69,0,0.5), 0 0 80px rgba(255,165,0,0.2);
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    h1 {
+      font-family: 'Orbitron', monospace;
+      font-size: clamp(2.2rem, 6vw, 4rem);
+      font-weight: 900;
+      letter-spacing: 4px;
+      background: linear-gradient(135deg, var(--fire) 0%, var(--gold) 50%, var(--orange) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      animation: glow-text 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow-text {
+      from { filter: drop-shadow(0 0 8px rgba(255,69,0,0.4)); }
+      to   { filter: drop-shadow(0 0 20px rgba(255,200,0,0.6)); }
+    }
+
+    .tagline {
+      font-size: 1.3rem;
+      color: rgba(240,230,210,0.65);
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      font-weight: 300;
+      margin-bottom: 48px;
+    }
+
+    /* ── MAIN CTA ── */
+    .cta-section {
+      text-align: center;
+      padding: 20px 24px 60px;
+    }
+
+    .cta-card {
+      display: inline-block;
+      position: relative;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 60px;
+      max-width: 600px;
+      width: 100%;
+      backdrop-filter: blur(12px);
+      overflow: hidden;
+    }
+
+    .cta-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--fire), var(--gold), var(--fire), transparent);
+      animation: shimmer 2.5s linear infinite;
+    }
+
+    @keyframes shimmer {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .cta-label {
+      font-size: 0.85rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    .cta-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 12px;
+    }
+
+    .cta-desc {
+      font-size: 1.05rem;
+      color: rgba(240,230,210,0.6);
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+
+    .visit-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, var(--fire), var(--orange));
+      color: #fff;
+      text-decoration: none;
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      padding: 18px 40px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 30px rgba(255,69,0,0.45), 0 0 0 1px rgba(255,140,0,0.3);
+      text-transform: uppercase;
+    }
+
+    .visit-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--gold), var(--fire));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .visit-btn:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 8px 40px rgba(255,69,0,0.65), 0 0 0 2px var(--gold);
+    }
+
+    .visit-btn:hover::before { opacity: 1; }
+
+    .visit-btn span, .visit-btn svg {
+      position: relative;
+      z-index: 1;
+    }
+
+    .visit-btn svg {
+      width: 20px; height: 20px;
+      transition: transform 0.2s;
+    }
+
+    .visit-btn:hover svg { transform: translateX(4px) rotate(-30deg); }
+
+    /* URL display */
+    .url-badge {
+      margin-top: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,140,0,0.2);
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 0.85rem;
+      color: rgba(240,230,210,0.5);
+      letter-spacing: 0.5px;
+      word-break: break-all;
+    }
+
+    .url-dot {
+      width: 7px; height: 7px;
+      background: var(--fire);
+      border-radius: 50%;
+      flex-shrink: 0;
+      animation: pulse-dot 1.8s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.6); }
+    }
+
+    /* ── FEATURES ── */
+    .features {
+      padding: 20px 24px 80px;
+    }
+
+    .section-label {
+      text-align: center;
+      font-size: 0.8rem;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 40px;
+      font-weight: 600;
+    }
+
+    .feat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .feat-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,140,0,0.15);
+      border-radius: 16px;
+      padding: 28px 24px;
+      transition: border-color 0.3s, transform 0.3s, background 0.3s;
+      animation: fade-up 0.6s ease both;
+    }
+
+    .feat-card:nth-child(1) { animation-delay: 0.1s; }
+    .feat-card:nth-child(2) { animation-delay: 0.2s; }
+    .feat-card:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .feat-card:hover {
+      border-color: var(--fire);
+      transform: translateY(-4px);
+      background: rgba(255,69,0,0.06);
+    }
+
+    .feat-icon {
+      font-size: 2rem;
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .feat-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+
+    .feat-desc {
+      font-size: 0.95rem;
+      color: rgba(240,230,210,0.55);
+      line-height: 1.55;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 40px 24px;
+      border-top: 1px solid rgba(255,140,0,0.1);
+      color: rgba(240,230,210,0.3);
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+    }
+
+    footer a {
+      color: var(--orange);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    footer a:hover { color: var(--gold); }
+
+    /* Responsive */
+    @media (max-width: 520px) {
+      .cta-card { padding: 36px 24px; }
+      .visit-btn { padding: 16px 28px; font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="container">
+      <div class="logo-ring">
+        <div class="logo-icon">FF</div>
+      </div>
+      <h1>FF Glory Pro</h1>
+      <p class="tagline">Dominate &nbsp;·&nbsp; Conquer &nbsp;·&nbsp; Achieve Glory</p>
+    </div>
+  </header>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-card">
+        <p class="cta-label">🔥 Official Website</p>
+        <h2 class="cta-title">FF Glory Pro</h2>
+        <p class="cta-desc">
+          Your ultimate destination for Free Fire glory. Unlock elite strategies,
+          resources, and tools to rise above the competition.
+        </p>
+        <a href="https://ffglorypro.netlify.app/" target="_blank" rel="noopener" class="visit-btn">
+          <span>Visit FF Glory</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+        <div class="url-badge">
+          <span class="url-dot"></span>
+          https://ffglorypro.netlify.app/
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <div class="container">
+      <p class="section-label">⚡ What Awaits You</p>
+      <div class="feat-grid">
+        <div class="feat-card">
+          <span class="feat-icon">🎯</span>
+          <div class="feat-name">Elite Strategies</div>
+          <p class="feat-desc">Master pro-level tactics and outplay every opponent on the battlefield.</p>
+        </div>
+        <div class="feat-card">
+          <span class="feat-icon">🏆</span>
+          <div class="feat-name">Glory Rewards</div>
+          <p class="feat-desc">Unlock exclusive resources, items, and content to level up your game.</p>
+        </div>
+        <div class="feat-card">
+          <span class="feat-icon">🔥</span>
+          <div class="feat-name">Live Updates</div>
+          <p class="feat-desc">Stay ahead with the latest Free Fire news, patches, and event guides.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="container">
+      <p>
+        Visit us at &nbsp;
+        <a href="https://ffglorypro.netlify.app/" target="_blank" rel="noopener">
+          ffglorypro.netlify.app
+        </a>
+        &nbsp; · &nbsp; FF Glory Pro &copy; 2026
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>
